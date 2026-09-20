@@ -2290,19 +2290,19 @@ let normas = [];
 // no estan en la lista) para no tener que anadirlas a mano una por una.
 // Hitos de progreso de Hoenn. Se leen SOLOS del save (byte de medallas en
 // 0x420C, bit i = medalla i+1) vía vidas_watcher_oras.py, que los guarda en el
-// perfil como "badges" (bitmask). El nivel máximo (cap) de cada hito es
-// orientativo: es el nivel del último Pokémon del líder/liga de ORAS, ajústalo
-// a vuestras normas editando "cap".
+// perfil como "badges" (bitmask). El level cap de cada hito es el nivel del
+// Pokémon más alto del líder en Omega Ruby / Alpha Sapphire (datos de Pokémon
+// Database). Alto Mando: Sidney 52, Phoebe 53, Glacia 54, Drake 55, Steven 59.
 const MILESTONE_TABLE = [
-  { icon: '🪨', label: 'Medalla 1 · Roca (Roxanne)',        short: 'Roca',       cap: 15 },
-  { icon: '🥊', label: 'Medalla 2 · Lucha (Brawly)',        short: 'Lucha',      cap: 19 },
-  { icon: '⚡', label: 'Medalla 3 · Eléctrico (Wattson)',   short: 'Eléctrico',  cap: 24 },
-  { icon: '🔥', label: 'Medalla 4 · Fuego (Flannery)',      short: 'Fuego',      cap: 29 },
-  { icon: '⚖️', label: 'Medalla 5 · Normal (Norman)',       short: 'Normal',     cap: 31 },
-  { icon: '🕊️', label: 'Medalla 6 · Volador (Winona)',      short: 'Volador',    cap: 33 },
-  { icon: '🔮', label: 'Medalla 7 · Psíquico (Tate y Liza)', short: 'Psíquico',  cap: 42 },
-  { icon: '💧', label: 'Medalla 8 · Agua (Wallace)',        short: 'Agua',       cap: 46 },
-  { icon: '🏆', label: 'Liga Pokémon (Alto Mando + Steven)', short: 'Liga',      cap: 58 },
+  { icon: '🪨', label: 'Medalla 1 · Roca (Roxanne)',         short: 'Roca',       cap: 14 },
+  { icon: '🥊', label: 'Medalla 2 · Lucha (Brawly)',         short: 'Lucha',      cap: 16 },
+  { icon: '⚡', label: 'Medalla 3 · Eléctrico (Wattson)',    short: 'Eléctrico',  cap: 21 },
+  { icon: '🔥', label: 'Medalla 4 · Fuego (Flannery)',       short: 'Fuego',      cap: 28 },
+  { icon: '⚖️', label: 'Medalla 5 · Normal (Norman)',        short: 'Normal',     cap: 30 },
+  { icon: '🕊️', label: 'Medalla 6 · Volador (Winona)',       short: 'Volador',    cap: 35 },
+  { icon: '🔮', label: 'Medalla 7 · Psíquico (Tate y Liza)', short: 'Psíquico',   cap: 45 },
+  { icon: '💧', label: 'Medalla 8 · Agua (Wallace)',         short: 'Agua',       cap: 46 },
+  { icon: '🏆', label: 'Liga Pokémon (Alto Mando 52-55 + Steven 59)', short: 'Liga', cap: 59 },
 ];
 const GYM_COUNT = 8;
 const DEFAULT_NORMAS = [
