@@ -1793,6 +1793,13 @@ input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--sapphi
 .hall-mascot{ margin-bottom:-22px; }
 @media (max-width:640px){ .hall-mascot{ margin-bottom:-14px; } }
 
+/* botón "Secreto" (oculta las bromas sobre Joel) */
+.topbar-right{ display:flex; align-items:center; gap:14px; }
+.secret-btn{ background:transparent; border:1px dashed rgba(60,203,255,.35); color:var(--silver-dim); font-family:var(--f-ui); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; padding:5px 10px; border-radius:var(--r); cursor:pointer; transition:all .15s; }
+.secret-btn:hover{ color:#fff; border-color:var(--sapphire); }
+.secret-btn.on{ background:rgba(255,77,61,.16); border:1px solid var(--ruby); color:#ffb4aa; }
+@media (max-width:560px){ .top-vs{ display:none; } }
+
 </style>
 </head>
 <body>
@@ -1817,7 +1824,10 @@ input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--sapphi
   <div class="stage">
     <div class="topbar">
       <div class="crumb" id="crumb">Rubí Omega</div>
-      <div class="top-vs"><span class="r">RUBÍ</span><span class="v">vs</span><span class="s">ZAFIRO</span></div>
+      <div class="topbar-right">
+        <button class="secret-btn" id="secret-btn" onclick="toggleSecreto()">🤫 Secreto</button>
+        <div class="top-vs"><span class="r">RUBÍ</span><span class="v">vs</span><span class="s">ZAFIRO</span></div>
+      </div>
     </div>
     <main id="app">
       <div class="empty-state">Cargando…</div>
@@ -2188,7 +2198,23 @@ const NAMES = { iker:'Iker', joel:'Joel', alex:'Alex' };
 // tal cual (perfil, historial, cementerio...), pero quedan descalificados de
 // LA FINAL (nunca ganan estrella, aunque su barra se siga viendo para
 // comparar) y llevan un cartel bien visible en su tarjeta de la portada.
-const RETIRED_TRAINERS = new Set(['joel']);
+const RETIRED_TRAINERS = new Set(); // vacío: ahora juegan los tres. (Si alguien vuelve a abandonar: new Set(['joel']))
+
+// ===== Modo "Secreto" =====
+// Botón de la barra superior. Oculta TODAS las bromas malas sobre Joel (sello de
+// traidor, etiquetas, pullas en las frases de los combates...). Se recuerda en
+// ESTE navegador (localStorage), no se comparte con los demás.
+const SECRETO_KEY = 'triolocke_secreto';
+let joelSecreto = false;
+try{ joelSecreto = localStorage.getItem(SECRETO_KEY) === '1'; }catch(e){}
+function joelBromasOn(){ return !joelSecreto; }
+function isTraitor(t){ return t === 'joel' && joelBromasOn(); }
+function toggleSecreto(){
+  joelSecreto = !joelSecreto;
+  try{ localStorage.setItem(SECRETO_KEY, joelSecreto ? '1' : '0'); }catch(e){}
+  render();
+  toast(joelSecreto ? '🤫 Modo secreto: bromas sobre Joel ocultas' : '😈 Bromas sobre Joel de vuelta');
+}
 
 const LOSER_PRIZES = ['1 captura extra', '1 Menta de Naturaleza', '5 tickets', '10 tickets', 'Banda Focus', 'Pesa Recia', 'Baya Meloc', 'Pierde 3 vidas', 'Pierde 1 vida', '1 Cápsula Habilidad', '1 Cápsula Habilidad', 'Nada'];
 const WINNER_PRIZES = ['2 capturas extra', 'Elegir entre 3 huevos', '2 Mentas de Naturaleza', '10 tickets', '20 tickets', 'Permiso para una ilegalidad', 'Cambiar un Pokémon por otro que quiera de otro equipo', '3 Cápsulas Habilidad'];
@@ -2214,17 +2240,13 @@ const MATCH1_LOSER_WHEEL = [
   { label: 'Se cambia un Pokémon de tu equipo (elegido por los otros dos) por un huevo random', hearts: 0 },
   { label: 'Suerte: solo pierdes 1 vida', hearts: 1 }
 ];
-// A partir de ahora los combates son 1 vs 1 directo (sin el sorteo de quién
-// juega primero ni el "bye" del torneo de 3) -- se fusiona en una sola rueda
-// lo que antes eran dos ruletas separadas de perdedor (la del Combate 1,
-// solo castigos, y la de la Final, mezcla de premios y castigos). El torneo
-// viejo con "bye" se deja intacto en el código por si algún día vuelve a
-// hacer falta (ver finalLoserOf) -- esto solo se usa cuando no hay bye.
+// Torneo de 3 (sorteo + "bye"): el Combate 1 tiene su ruleta de perdedor
+// (MATCH1_LOSER_WHEEL, solo castigos) y la Final tiene la suya (LOSER_PRIZES,
+// mezcla de premios y castigos) más la del ganador (WINNER_PRIZES).
+// MERGED_LOSER_WHEEL (las dos fusionadas) solo se usa en combates 1 vs 1 sin bye.
 const MERGED_LOSER_WHEEL = [
   ...LOSER_PRIZES,
   ...MATCH1_LOSER_WHEEL.map(o => o.label),
-  'Joel: RATA',
-  'Joel: PAYASO',
 ];
 
 let hearts = {}, teams = {}, history = [], tradesActive = [], tradesHistory = [];
@@ -3785,7 +3807,7 @@ function renderRivalriesCard(){
     const leaderName = total>0 ? (wins[a]>=wins[b] ? a : b) : null;
     const usR = getUltraSolRecord(a, b);
     const usTag = usR ? `<div class="rivalry-tag">🌞 Ultra Sol: ${NAMES[a]} ${usR[a]}-${usR[b]} ${NAMES[b]} (sin estrellas) · Iker ganó con 3 Potencia</div>` : '';
-    const joelTag = (RETIRED_TRAINERS.has(a) || RETIRED_TRAINERS.has(b)) ? `<div class="rivalry-tag close">🚩 ${NAMES[RETIRED_TRAINERS.has(a)?a:b]} es el traidor</div>` : '';
+    const joelTag = (isTraitor(a) || isTraitor(b)) ? `<div class="rivalry-tag close">🚩 ${NAMES[isTraitor(a)?a:b]} es el traidor</div>` : '';
     return `
       <div class="rivalry-card ${total>0 && wins[a]!==wins[b] ? 'has-leader':''}">
         <div class="rivalry-score">
@@ -3816,7 +3838,7 @@ function renderRailStatus(){
   const el = document.getElementById('rail-status');
   if(!el || !loaded) return;
   el.innerHTML = `<div class="rs-title">Vidas</div>` + TRAINERS.map(t=>{
-    const h = hearts[t]; const ret = RETIRED_TRAINERS.has(t);
+    const h = hearts[t]; const ret = isTraitor(t);
     const pct = Math.max(0, Math.min(100, (h/20)*100));
     return `<div class="rs-row ${ret?'ret':''}" onclick="go('profile','${t}')">
       <span class="rs-name">${NAMES[t]}</span>
@@ -3831,6 +3853,12 @@ function renderTopbar(){
   if(!el) return;
   const name = view==='profile' && currentTrainer ? `${NAMES[currentTrainer]}` : (VIEW_TITLES[view] || '');
   el.innerHTML = `Rubí Omega <b>/ ${name}</b>`;
+  const sb = document.getElementById('secret-btn');
+  if(sb){
+    sb.classList.toggle('on', !!joelSecreto);
+    sb.textContent = joelSecreto ? '🤫 Secreto: ON' : '🤫 Secreto';
+    sb.title = joelSecreto ? 'Las bromas sobre Joel están ocultas. Pulsa para volver a mostrarlas.' : 'Oculta todas las bromas sobre Joel';
+  }
 }
 
 /* ===================== INICIO ===================== */
@@ -3849,12 +3877,13 @@ function lbRow(t, r){
   const h = hearts[t];
   const wins = combatWinsOf(t);
   const ret = RETIRED_TRAINERS.has(t);
+  const trai = isTraitor(t);
   const cap = currentLevelCap(t);
   const over = overCapMonsOf(t);
   const fainted = new Set(allMonsOf(t).filter(m=>m.fainted).map(m=>m.pid));
   return `
     <div class="lb-row brk rank-${r.pos} ${ret?'retired':''}" onclick="go('profile','${t}')">
-      ${ret ? `<div class="stamp-traitor">🚩 TRAIDOR, APOLLARDAO</div>` : ''}
+      ${(ret || trai) ? `<div class="stamp-traitor">🚩 TRAIDOR, APOLLARDAO</div>` : ''}
       <div class="lb-rank"><div class="lb-num">${String(r.pos).padStart(2,'0')}</div><div class="lb-medal">${r.icon}</div></div>
       <div class="lb-head">
         <span class="lb-name">${NAMES[t]}</span>
@@ -3904,7 +3933,7 @@ function renderHome(app){
         <div class="side-card brk">
           <div class="section-sub">Ruta de Hoenn</div>
           ${order.map(t=>`
-            <div class="route-row ${RETIRED_TRAINERS.has(t)?'ret':''}">
+            <div class="route-row ${isTraitor(t)?'ret':''}">
               <div class="rn">${NAMES[t]}</div>
               ${hexTrack(t)}
             </div>`).join('')}
@@ -3923,7 +3952,7 @@ function renderProfile(app, t){
   const myPending = pendingPrizes[t]||[];
   const rankOf = getMedalRanking();
   const wins = combatWinsOf(t);
-  const ret = RETIRED_TRAINERS.has(t);
+  const ret = RETIRED_TRAINERS.has(t) || isTraitor(t);
   const cap = currentLevelCap(t);
   const over = overCapMonsOf(t);
   const R = 72, C = 2*Math.PI*R;
@@ -6642,11 +6671,9 @@ async function submitScheduleDuel(){
   const dt = document.getElementById('duel-datetime').value;
   const err = document.getElementById('duel-err');
   if(!name || !dt){ err.textContent = 'Rellena el nombre y la fecha.'; return; }
-  // Combate directo: Alex vs Iker sin sorteo de por medio (Joel se retiró
-  // del reto, así que ya no hay tercer contendiente ni "bye"). Se deja
-  // "bye" a null a propósito -- de eso dependen finalLoserOf() y el resto
-  // del flujo simplificado para saber que no hay segunda ronda que jugar.
-  duelState = { scheduled: { name, datetime: dt }, picks:['alex','iker'], bye:null, match1:{p1:'alex',p2:'iker'}, match1Games:[], match1Winner:null, match1LoserPrize:null, finalGames:[], finalWinner:null, finalWinnerPrize:null, finalLoserPrize:null };
+  // Torneo de 3: sortea quién juega el Combate 1 (dos jugadores); el tercero pasa
+  // directo a la final ("bye"). El sorteo se hace en la propia pantalla (spinWheel).
+  duelState = { scheduled: { name, datetime: dt }, picks:[], bye:null, match1:null, match1Games:[], match1Winner:null, match1LoserPrize:null, finalGames:[], finalWinner:null, finalWinnerPrize:null, finalLoserPrize:null };
   duelWheelRotation = 0;
   finalWheelRotationWinner = 0;
   finalWheelRotationLoser = 0;
@@ -6786,7 +6813,7 @@ const ULTRASOL_CALLBACKS = [
   '🌞 El marcador de Ultra Sol (Iker 6-3, sin estrellas de la final) sigue ahí como recordatorio. Eso y las 3 Potencias que le salieron a Iker.',
   '🌞 Dicen que en Ultra Sol la diferencia fueron 3 Pokémon con Potencia. Marcador final: 6-3 para Iker, sin contar las estrellas. En Hoenn, a ver qué reparte el azar.',
 ];
-// El traidor. Joel se largó (RETIRED_TRAINERS) y aquí nadie se lo va a perdonar.
+// El traidor. Joel se largó en Ultra Sol y aquí nadie se lo va a perdonar (el botón "Secreto" de la web oculta todo esto).
 const JOEL_JABS = [
   '🚩 Mientras tanto, Joel — el traidor — sigue sin aparecer por aquí.',
   '🚩 Nota al margen: Joel, el traidor, se pierde este combate por voluntad propia.',
@@ -6804,7 +6831,7 @@ function bo3Narration(games, p1, p2, isFinal){
   if(pair === 'alex-iker' && Math.random() < 0.55){
     text += ' ' + pickNarrationVariant('us_callback', ULTRASOL_CALLBACKS.map(s => () => s))();
   }
-  const joelOut = TRAINERS.includes('joel') && RETIRED_TRAINERS.has('joel') && p1 !== 'joel' && p2 !== 'joel';
+  const joelOut = joelBromasOn() && TRAINERS.includes('joel') && p1 !== 'joel' && p2 !== 'joel';
   if(joelOut && Math.random() < 0.45){
     text += ' ' + pickNarrationVariant('joel_jab', JOEL_JABS.map(s => () => s))();
   }
@@ -6834,7 +6861,7 @@ function bo3NarrationCore(games, p1, p2, isFinal){
           () => `🌞 Hay marcadores que se recuerdan con asterisco: en Ultra Sol quedó ${score} (estrellas de la final aparte), y el asterisco se llama Potencia, tres veces. Empieza Hoenn, y el primer golpe cae del lado de <strong>${W}</strong>.`,
           () => `🌞 Ultra Sol: ${score}, sin contar las estrellas de la final. Iker ganó, sí, pero con 3 Pokémon con Potencia de por medio, y Alex todavía lo tiene apuntado en algún sitio. Nuevo capítulo en Hoenn: primer asalto para <strong>${W}</strong>.`,
           () => `🌞 La rivalidad viene de lejos: ${score} en Ultra Sol (sin estrellas de la final) y un Iker que ganó gracias a que le tocaron 3 Potencias. En Hoenn nadie garantiza que se repita — el primer asalto ya es de <strong>${W}</strong>.`,
-          () => `🚩 Y por si alguien lo ha olvidado: Joel, el traidor, ni figuraba en el marcador de Ultra Sol (${score}, sin estrellas de la final). Solo quedaron Iker y Alex, con las 3 Potencias de Iker de por medio. Empieza Hoenn y el primer asalto es de <strong>${W}</strong>.`,
+          ...(joelBromasOn() ? [() => `🚩 Y por si alguien lo ha olvidado: Joel, el traidor, ni figuraba en el marcador de Ultra Sol (${score}, sin estrellas de la final). Solo quedaron Iker y Alex, con las 3 Potencias de Iker de por medio. Empieza Hoenn y el primer asalto es de <strong>${W}</strong>.`] : []),
           ...(wMon ? [() => `🌞 En Ultra Sol quedó ${score} (sin estrellas de la final) y Potencia hizo el resto. Aquí, el primero en dar el golpe es <strong>${wMon.species}</strong>, del equipo de ${W} — Hoenn escribe su propia versión.`] : []),
         ];
         return pickNarrationVariant('g1_ultrasol', variants)();
@@ -6855,8 +6882,10 @@ function bo3NarrationCore(games, p1, p2, isFinal){
           variants.push(
             () => `🕹️ Que nadie se olvide del segundo enfrentamiento en Pokémon X, cuando Alex le metió una auténtica manita a Iker sin despeinarse. Con eso en la memoria llega este primer cruce en Hoenn, y el primer asalto se lo lleva <strong>${W}</strong>.`,
             () => `🕹️ En Kalos hubo un segundo combate que Iker preferiría no recordar: Alex le pasó por encima sin piedad. Rivalidad marcada a fuego, capítulo nuevo en Hoenn — y el primer asalto cae del lado de <strong>${W}</strong>.`,
-            () => `🕹️ Iker sabe perfectamente de lo que hablamos: aquella paliza de Alex en el segundo duelo de Pokémon X todavía escuece. Ahora, en Hoenn, arranca otro capítulo — y el primero se lo apunta <strong>${W}</strong>.`,
-            () => `🏖️ Iker y Alex se conocen de sobra — al fin y al cabo, son los dos que se quedaron sujetando el Triolocke cuando Joel se largó de vacaciones a mitad de partida y los dejó tirados. Curtidos por esa experiencia, se enfrentan ahora en Hoenn, y el primer asalto es para <strong>${W}</strong>.`,
+            () => `🕹️ Iker sabe perfectamente de lo que hablamos: aquella paliza de Alex en el segundo duelo de Pokémon X todavía escuece. Ahora, en Hoenn, arranca otro capítulo — y el primero se lo apunta <strong>${W}</strong>.`
+          );
+          if(joelBromasOn()) variants.push(
+() => `🏖️ Iker y Alex se conocen de sobra — al fin y al cabo, son los dos que se quedaron sujetando el Triolocke cuando Joel se largó de vacaciones a mitad de partida y los dejó tirados. Curtidos por esa experiencia, se enfrentan ahora en Hoenn, y el primer asalto es para <strong>${W}</strong>.`,
             () => `🏖️ Mientras Joel andaba de vacaciones dejando el Triolocke a medias, Iker y Alex fueron quienes sostuvieron el barco. Esa complicidad forzosa no impide que aquí se jueguen el primer asalto a muerte — y se lo lleva <strong>${W}</strong>.`,
             () => `🏖️ Compañeros de fatigas desde que Joel decidió que unas vacaciones importaban más que el Triolocke, Iker y Alex vuelven a verse las caras — esta vez en Hoenn, y sin nadie que se escaquee. El primer asalto lo gana <strong>${W}</strong>.`
           );
@@ -6980,11 +7009,11 @@ async function recordBo3Game(matchKey, gameWinner){
 
   if(matchDecided){
     if(isFinal){
-      await addTickets(p1, 5, 'Jugar la Final');
-      await addTickets(p2, 5, 'Jugar la Final');
+      await addTickets(p1, 10, 'Jugar la Final');
+      await addTickets(p2, 10, 'Jugar la Final');
     } else {
-      await addTickets(p1, 5, 'Jugar el Combate 1');
-      await addTickets(p2, 5, 'Jugar el Combate 1');
+      await addTickets(p1, 10, 'Jugar el Combate 1');
+      await addTickets(p2, 10, 'Jugar el Combate 1');
     }
     await resolveDuelBets(matchKey, matchWinner);
   }
