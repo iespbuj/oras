@@ -1797,7 +1797,6 @@ input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--sapphi
 .topbar-right{ display:flex; align-items:center; gap:14px; }
 .secret-btn{ background:transparent; border:1px dashed rgba(60,203,255,.35); color:var(--silver-dim); font-family:var(--f-ui); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; padding:5px 10px; border-radius:var(--r); cursor:pointer; transition:all .15s; }
 .secret-btn:hover{ color:#fff; border-color:var(--sapphire); }
-.secret-btn.on{ background:rgba(255,77,61,.16); border:1px solid var(--ruby); color:#ffb4aa; }
 @media (max-width:560px){ .top-vs{ display:none; } }
 
 </style>
@@ -2201,19 +2200,44 @@ const NAMES = { iker:'Iker', joel:'Joel', alex:'Alex' };
 const RETIRED_TRAINERS = new Set(); // vacío: ahora juegan los tres. (Si alguien vuelve a abandonar: new Set(['joel']))
 
 // ===== Modo "Secreto" =====
-// Botón de la barra superior. Oculta TODAS las bromas malas sobre Joel (sello de
-// traidor, etiquetas, pullas en las frases de los combates...). Se recuerda en
-// ESTE navegador (localStorage), no se comparte con los demás.
 const SECRETO_KEY = 'triolocke_secreto';
-let joelSecreto = false;
-try{ joelSecreto = localStorage.getItem(SECRETO_KEY) === '1'; }catch(e){}
-function joelBromasOn(){ return !joelSecreto; }
-function isTraitor(t){ return t === 'joel' && joelBromasOn(); }
+let modoSecreto = false;
+try{ modoSecreto = localStorage.getItem(SECRETO_KEY) === '1'; }catch(e){}
+function extrasVisibles(){ return !modoSecreto; }
+function hasTag(t){ return t === 'joel' && extrasVisibles(); }
+// Contraseña del botón (para cambiarla, edita esta línea). Como el resto de
+// contraseñas de la web, está en el código de la página: es un candado para
+// curiosos, no seguridad de verdad.
+const SECRETO_PASSWORD = 'w secreto';
 function toggleSecreto(){
-  joelSecreto = !joelSecreto;
-  try{ localStorage.setItem(SECRETO_KEY, joelSecreto ? '1' : '0'); }catch(e){}
+  openModal(`
+    <h3>🤫 Secreto</h3>
+    <p style="font-size:13px;color:var(--silver-dim);margin:0 0 12px;">Introduce la contraseña.</p>
+    <input type="password" id="secreto-pw" placeholder="Contraseña" autocomplete="off" style="width:100%;padding:10px 12px;">
+    <div class="err-msg" id="secreto-err"></div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeModal()">Cancelar</button>
+      <button class="primary" onclick="submitSecreto()">Entrar</button>
+    </div>
+  `);
+  setTimeout(()=>{
+    const inp = document.getElementById('secreto-pw');
+    if(inp){ inp.focus(); inp.addEventListener('keydown', e=>{ if(e.key === 'Enter') submitSecreto(); }); }
+  }, 60);
+}
+function submitSecreto(){
+  const inp = document.getElementById('secreto-pw');
+  if(!inp) return;
+  if(inp.value.trim().toLowerCase() !== SECRETO_PASSWORD){
+    document.getElementById('secreto-err').textContent = 'Contraseña incorrecta.';
+    inp.value = ''; inp.focus();
+    return;
+  }
+  modoSecreto = !modoSecreto;
+  try{ localStorage.setItem(SECRETO_KEY, modoSecreto ? '1' : '0'); }catch(e){}
+  closeModal();
   render();
-  toast(joelSecreto ? '🤫 Modo secreto: bromas sobre Joel ocultas' : '😈 Bromas sobre Joel de vuelta');
+  toast('✅ Listo');
 }
 
 const LOSER_PRIZES = ['1 captura extra', '1 Menta de Naturaleza', '5 tickets', '10 tickets', 'Banda Focus', 'Pesa Recia', 'Baya Meloc', 'Pierde 3 vidas', 'Pierde 1 vida', '1 Cápsula Habilidad', '1 Cápsula Habilidad', 'Nada'];
@@ -3807,7 +3831,7 @@ function renderRivalriesCard(){
     const leaderName = total>0 ? (wins[a]>=wins[b] ? a : b) : null;
     const usR = getUltraSolRecord(a, b);
     const usTag = usR ? `<div class="rivalry-tag">🌞 Ultra Sol: ${NAMES[a]} ${usR[a]}-${usR[b]} ${NAMES[b]} (sin estrellas) · Iker ganó con 3 Potencia</div>` : '';
-    const joelTag = (isTraitor(a) || isTraitor(b)) ? `<div class="rivalry-tag close">🚩 ${NAMES[isTraitor(a)?a:b]} es el traidor</div>` : '';
+    const joelTag = (hasTag(a) || hasTag(b)) ? `<div class="rivalry-tag close">🚩 ${NAMES[hasTag(a)?a:b]} es el traidor</div>` : '';
     return `
       <div class="rivalry-card ${total>0 && wins[a]!==wins[b] ? 'has-leader':''}">
         <div class="rivalry-score">
@@ -3838,7 +3862,7 @@ function renderRailStatus(){
   const el = document.getElementById('rail-status');
   if(!el || !loaded) return;
   el.innerHTML = `<div class="rs-title">Vidas</div>` + TRAINERS.map(t=>{
-    const h = hearts[t]; const ret = isTraitor(t);
+    const h = hearts[t]; const ret = hasTag(t);
     const pct = Math.max(0, Math.min(100, (h/20)*100));
     return `<div class="rs-row ${ret?'ret':''}" onclick="go('profile','${t}')">
       <span class="rs-name">${NAMES[t]}</span>
@@ -3853,12 +3877,6 @@ function renderTopbar(){
   if(!el) return;
   const name = view==='profile' && currentTrainer ? `${NAMES[currentTrainer]}` : (VIEW_TITLES[view] || '');
   el.innerHTML = `Rubí Omega <b>/ ${name}</b>`;
-  const sb = document.getElementById('secret-btn');
-  if(sb){
-    sb.classList.toggle('on', !!joelSecreto);
-    sb.textContent = joelSecreto ? '🤫 Secreto: ON' : '🤫 Secreto';
-    sb.title = joelSecreto ? 'Las bromas sobre Joel están ocultas. Pulsa para volver a mostrarlas.' : 'Oculta todas las bromas sobre Joel';
-  }
 }
 
 /* ===================== INICIO ===================== */
@@ -3877,7 +3895,7 @@ function lbRow(t, r){
   const h = hearts[t];
   const wins = combatWinsOf(t);
   const ret = RETIRED_TRAINERS.has(t);
-  const trai = isTraitor(t);
+  const trai = hasTag(t);
   const cap = currentLevelCap(t);
   const over = overCapMonsOf(t);
   const fainted = new Set(allMonsOf(t).filter(m=>m.fainted).map(m=>m.pid));
@@ -3933,7 +3951,7 @@ function renderHome(app){
         <div class="side-card brk">
           <div class="section-sub">Ruta de Hoenn</div>
           ${order.map(t=>`
-            <div class="route-row ${isTraitor(t)?'ret':''}">
+            <div class="route-row ${hasTag(t)?'ret':''}">
               <div class="rn">${NAMES[t]}</div>
               ${hexTrack(t)}
             </div>`).join('')}
@@ -3952,7 +3970,7 @@ function renderProfile(app, t){
   const myPending = pendingPrizes[t]||[];
   const rankOf = getMedalRanking();
   const wins = combatWinsOf(t);
-  const ret = RETIRED_TRAINERS.has(t) || isTraitor(t);
+  const ret = RETIRED_TRAINERS.has(t) || hasTag(t);
   const cap = currentLevelCap(t);
   const over = overCapMonsOf(t);
   const R = 72, C = 2*Math.PI*R;
@@ -6831,7 +6849,7 @@ function bo3Narration(games, p1, p2, isFinal){
   if(pair === 'alex-iker' && Math.random() < 0.55){
     text += ' ' + pickNarrationVariant('us_callback', ULTRASOL_CALLBACKS.map(s => () => s))();
   }
-  const joelOut = joelBromasOn() && TRAINERS.includes('joel') && p1 !== 'joel' && p2 !== 'joel';
+  const joelOut = extrasVisibles() && TRAINERS.includes('joel') && p1 !== 'joel' && p2 !== 'joel';
   if(joelOut && Math.random() < 0.45){
     text += ' ' + pickNarrationVariant('joel_jab', JOEL_JABS.map(s => () => s))();
   }
@@ -6861,7 +6879,7 @@ function bo3NarrationCore(games, p1, p2, isFinal){
           () => `🌞 Hay marcadores que se recuerdan con asterisco: en Ultra Sol quedó ${score} (estrellas de la final aparte), y el asterisco se llama Potencia, tres veces. Empieza Hoenn, y el primer golpe cae del lado de <strong>${W}</strong>.`,
           () => `🌞 Ultra Sol: ${score}, sin contar las estrellas de la final. Iker ganó, sí, pero con 3 Pokémon con Potencia de por medio, y Alex todavía lo tiene apuntado en algún sitio. Nuevo capítulo en Hoenn: primer asalto para <strong>${W}</strong>.`,
           () => `🌞 La rivalidad viene de lejos: ${score} en Ultra Sol (sin estrellas de la final) y un Iker que ganó gracias a que le tocaron 3 Potencias. En Hoenn nadie garantiza que se repita — el primer asalto ya es de <strong>${W}</strong>.`,
-          ...(joelBromasOn() ? [() => `🚩 Y por si alguien lo ha olvidado: Joel, el traidor, ni figuraba en el marcador de Ultra Sol (${score}, sin estrellas de la final). Solo quedaron Iker y Alex, con las 3 Potencias de Iker de por medio. Empieza Hoenn y el primer asalto es de <strong>${W}</strong>.`] : []),
+          ...(extrasVisibles() ? [() => `🚩 Y por si alguien lo ha olvidado: Joel, el traidor, ni figuraba en el marcador de Ultra Sol (${score}, sin estrellas de la final). Solo quedaron Iker y Alex, con las 3 Potencias de Iker de por medio. Empieza Hoenn y el primer asalto es de <strong>${W}</strong>.`] : []),
           ...(wMon ? [() => `🌞 En Ultra Sol quedó ${score} (sin estrellas de la final) y Potencia hizo el resto. Aquí, el primero en dar el golpe es <strong>${wMon.species}</strong>, del equipo de ${W} — Hoenn escribe su propia versión.`] : []),
         ];
         return pickNarrationVariant('g1_ultrasol', variants)();
@@ -6884,7 +6902,7 @@ function bo3NarrationCore(games, p1, p2, isFinal){
             () => `🕹️ En Kalos hubo un segundo combate que Iker preferiría no recordar: Alex le pasó por encima sin piedad. Rivalidad marcada a fuego, capítulo nuevo en Hoenn — y el primer asalto cae del lado de <strong>${W}</strong>.`,
             () => `🕹️ Iker sabe perfectamente de lo que hablamos: aquella paliza de Alex en el segundo duelo de Pokémon X todavía escuece. Ahora, en Hoenn, arranca otro capítulo — y el primero se lo apunta <strong>${W}</strong>.`
           );
-          if(joelBromasOn()) variants.push(
+          if(extrasVisibles()) variants.push(
 () => `🏖️ Iker y Alex se conocen de sobra — al fin y al cabo, son los dos que se quedaron sujetando el Triolocke cuando Joel se largó de vacaciones a mitad de partida y los dejó tirados. Curtidos por esa experiencia, se enfrentan ahora en Hoenn, y el primer asalto es para <strong>${W}</strong>.`,
             () => `🏖️ Mientras Joel andaba de vacaciones dejando el Triolocke a medias, Iker y Alex fueron quienes sostuvieron el barco. Esa complicidad forzosa no impide que aquí se jueguen el primer asalto a muerte — y se lo lleva <strong>${W}</strong>.`,
             () => `🏖️ Compañeros de fatigas desde que Joel decidió que unas vacaciones importaban más que el Triolocke, Iker y Alex vuelven a verse las caras — esta vez en Hoenn, y sin nadie que se escaquee. El primer asalto lo gana <strong>${W}</strong>.`
