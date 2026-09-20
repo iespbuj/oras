@@ -289,13 +289,22 @@ body{
 }
 .autocomplete-item:hover{ background: var(--bg-elev); color: var(--silver-bright); }
 .loading-dot{ display:inline-block; }
+/* ================================================================
+   EL CRÁTER — rework total de la Arena (obsidiana + magma viva)
+   ================================================================ */
 .duel-empty{
-  text-align:center; padding: 60px 20px;
+  position:relative; text-align:center; padding: 70px 20px 50px;
   animation: floatIn .4s ease both;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(255,106,45,0.16), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(0,0,0,0.25) 0 2px, transparent 2px 26px);
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 .duel-empty-icon{
-  font-size: 44px; margin-bottom: 14px; opacity:.7;
-  animation: sparkTwinkle 2.4s ease-in-out infinite;
+  font-size: 44px; margin-bottom: 14px; opacity:.75;
+  filter: drop-shadow(0 0 14px rgba(255,140,60,0.5));
+  animation: emberBreathe 2.6s ease-in-out infinite;
 }
 .duel-empty p{ color: var(--silver-dim); margin-bottom: 22px; font-size: 14px; }
 @keyframes arenaGlow{
@@ -335,33 +344,60 @@ body{
   0%,100%{ border-color: var(--border); }
   50%{ border-color: #c94a4a; box-shadow: 0 0 14px rgba(200,80,80,0.35); }
 }
+/* ---- nuevas animaciones exclusivas de El Cráter ---- */
+@keyframes emberBreathe{
+  0%,100%{ transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,140,60,0.35)); }
+  50%{ transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(255,140,60,0.75)); }
+}
+@keyframes emberRise{
+  0%{ transform: translateY(0) translateX(0) scale(1); opacity:0; }
+  10%{ opacity:1; }
+  100%{ transform: translateY(-140px) translateX(var(--ex,10px)) scale(.3); opacity:0; }
+}
+@keyframes magmaCrawl{
+  0%{ background-position: 0% 50%; }
+  100%{ background-position: 200% 50%; }
+}
+@keyframes crackFlicker{
+  0%,100%{ opacity:.5; filter:brightness(1); }
+  45%{ opacity:1; filter:brightness(1.6); }
+  55%{ opacity:.85; filter:brightness(1.2); }
+}
+@keyframes obsidianFloat{
+  0%,100%{ transform: translateY(0) rotate(-0.4deg); }
+  50%{ transform: translateY(-4px) rotate(0.4deg); }
+}
 .duel-card{
   position:relative;
-  background: linear-gradient(160deg, var(--panel) 0%, var(--bg-elev) 100%);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 30px 20px; text-align:center; margin-bottom: 28px;
+  background:
+    radial-gradient(ellipse at 20% -20%, rgba(255,120,60,0.14), transparent 55%),
+    linear-gradient(160deg, var(--panel) 0%, var(--bg-elev) 75%, #0c0503 100%);
+  border: 1px solid var(--border);
+  clip-path: polygon(2.5% 0%, 97% 0%, 100% 12%, 100% 88%, 97.5% 100%, 3% 100%, 0% 88%, 0% 12%);
+  padding: 34px 22px 30px; text-align:center; margin-bottom: 30px;
   overflow:hidden;
-  animation: floatIn .5s ease both;
+  animation: floatIn .5s ease both, obsidianFloat 7s ease-in-out infinite;
 }
 .duel-card::before{
-  content:''; position:absolute; inset:-40%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(159,178,218,0.16) 60deg, transparent 140deg, rgba(120,190,230,0.14) 220deg, transparent 300deg);
-  animation: arenaSpin 14s linear infinite;
-  pointer-events:none;
+  content:''; position:absolute; left:0; right:0; top:0; height:4px;
+  background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--gold) 50%, var(--accent) 80%, transparent);
+  background-size: 220% 100%;
+  animation: magmaCrawl 3.5s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(255,120,60,0.7));
 }
 .duel-card::after{
-  content:''; position:absolute; inset:0; border-radius: 8px;
-  box-shadow: inset 0 0 40px rgba(159,178,218,0.06);
+  content:''; position:absolute; inset:0;
+  box-shadow: inset 0 0 50px rgba(255,106,45,0.08), inset 0 0 2px rgba(255,200,140,0.25);
   pointer-events:none;
 }
 .duel-card > *{ position:relative; z-index:1; }
 .duel-name{
   font-family:var(--f-ui); font-size: 22px; letter-spacing:1.5px;
   color: var(--silver-bright); margin-bottom: 4px;
-  text-shadow: 0 0 18px rgba(159,178,218,0.35);
+  text-shadow: 0 0 18px rgba(255,120,60,0.45);
 }
-.duel-name::before{ content:'⚔️ '; }
-.duel-name::after{ content:' ⚔️'; }
+.duel-name::before{ content:'🌋 '; }
+.duel-name::after{ content:' 🌋'; }
 .duel-date{ font-size: 12px; color: var(--silver-dim); letter-spacing:.5px; margin-bottom: 20px; }
 .countdown{
   display:flex; justify-content:center; gap: 14px; flex-wrap:wrap;
@@ -369,44 +405,68 @@ body{
 .countdown .unit{ min-width: 64px; }
 .countdown .num{
   font-family:var(--f-mono); font-size: 34px; font-weight:600;
-  color: var(--silver-bright); background: var(--bg); border:1px solid var(--border);
-  border-radius: 5px; padding: 10px 4px; display:block;
-  box-shadow: 0 0 0 rgba(159,178,218,0);
+  color: var(--silver-bright);
+  background: linear-gradient(160deg, #1a0d06, #0a0503);
+  border:1px solid var(--border);
+  clip-path: polygon(12% 0,88% 0,100% 18%,100% 100%,0 100%,0 18%);
+  padding: 10px 4px; display:block;
+  box-shadow: inset 0 0 10px rgba(0,0,0,.6);
   transition: box-shadow .3s ease, border-color .3s ease;
 }
-.countdown .unit:hover .num{ border-color: var(--accent-dim); box-shadow: 0 0 16px rgba(159,178,218,0.25); }
+.countdown .unit:hover .num{ border-color: var(--accent); box-shadow: inset 0 0 10px rgba(0,0,0,.6), 0 0 16px rgba(255,120,60,0.3); }
 .countdown .num.tick{ animation: numTick .4s ease-out; }
 .countdown.urgent .num{ animation: urgentPulse 1s ease-in-out infinite; }
 .countdown .lbl{ font-size: 10px; letter-spacing:1.5px; color: var(--silver-dim); margin-top:6px; display:block; text-transform:uppercase; }
 .countdown.due .num{ color: var(--gold); border-color: var(--gold); animation: pulseRing 1.4s ease-out infinite; }
 .duel-top-actions{ display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
+/* ---- La rueda pasa a ser un SIGILO DE MAGMA giratorio ---- */
 .wheel-wrap{
-  display:flex; flex-direction:column; align-items:center; margin: 10px 0 30px;
+  position:relative;
+  display:flex; flex-direction:column; align-items:center; margin: 14px 0 34px;
   animation: floatIn .5s ease both;
 }
-.wheel-outer{
-  position:relative; width: 220px; height: 220px; margin-bottom: 18px;
+.wheel-wrap::before, .wheel-wrap::after{
+  content:''; position:absolute; width:4px; height:4px; border-radius:50%;
+  background: var(--accent); top:70%; left:50%;
+  box-shadow: 0 0 8px 2px rgba(255,140,60,0.8);
+  animation: emberRise 3.2s ease-in infinite;
+  pointer-events:none;
 }
-.wheel-outer.small{ width: 170px; height: 170px; }
+.wheel-wrap::after{ left:42%; animation-delay: 1.3s; --ex:-16px; }
+.wheel-wrap::before{ --ex:14px; animation-delay:.4s; }
+.wheel-outer{
+  position:relative; width: 226px; height: 226px; margin-bottom: 18px;
+}
+.wheel-outer.small{ width: 174px; height: 174px; }
 .wheel-outer::before{
-  content:''; position:absolute; inset:-14px; border-radius:50%;
-  border: 2px dashed var(--accent-dim); opacity:.35;
-  animation: arenaSpin 22s linear infinite;
+  content:''; position:absolute; inset:-16px; border-radius:50%;
+  border: 2px solid transparent;
+  background: conic-gradient(var(--accent), var(--gold), var(--danger), var(--gold), var(--accent)) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity:.65;
+  animation: arenaSpin 9s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(255,120,60,0.5));
   pointer-events:none;
 }
 .wheel-pointer{
-  position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+  position:absolute; top:-10px; left:50%; transform:translateX(-50%);
   width:0; height:0; z-index:5;
-  border-left: 10px solid transparent; border-right: 10px solid transparent;
-  border-top: 18px solid var(--gold);
-  filter: drop-shadow(0 0 8px rgba(120,190,230,0.7));
+  border-left: 9px solid transparent; border-right: 9px solid transparent;
+  border-top: 22px solid var(--accent);
+  filter: drop-shadow(0 0 10px rgba(255,120,60,0.9)) drop-shadow(0 0 3px var(--gold));
 }
 .wheel{
   width:100%; height:100%; border-radius:50%;
-  border: 3px solid var(--border);
+  border: 4px solid #150b08;
   position:relative; overflow:hidden;
   transition: transform 4.2s cubic-bezier(0.15, 0.85, 0.25, 1);
-  box-shadow: 0 0 0 6px var(--bg-elev), 0 10px 30px rgba(0,0,0,0.4), 0 0 40px rgba(159,178,218,0.12);
+  box-shadow:
+    0 0 0 3px var(--gold),
+    0 0 0 8px var(--bg-elev),
+    0 10px 34px rgba(0,0,0,0.55),
+    0 0 46px rgba(255,120,60,0.35),
+    inset 0 0 30px rgba(0,0,0,0.4);
   background: var(--panel-2);
 }
 .wheel-seg{
@@ -416,7 +476,8 @@ body{
 .wheel-seg span{
   position:absolute; top: 18px; left:50%;
   font-family:var(--f-ui); font-weight:700; font-size: 14px;
-  letter-spacing:1px; color: var(--bg);
+  letter-spacing:1px; color: #1a0a04;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
   white-space:nowrap;
 }
 .wheel-seg-inner{
@@ -425,7 +486,7 @@ body{
 }
 .wheel-seg-inner img{
   width: 34px; height: 34px; object-fit: contain; border-radius: 50%;
-  background: var(--bg); border: 2px solid var(--bg-elev); box-shadow: 0 0 6px rgba(0,0,0,0.35);
+  background: var(--bg); border: 2px solid var(--gold); box-shadow: 0 0 8px rgba(255,120,60,0.5);
 }
 .wheel-seg-inner span{
   font-family:var(--f-ui); font-weight:700; font-size: 10px;
@@ -434,9 +495,11 @@ body{
 }
 .wheel-center{
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:34px; height:34px; border-radius:50%;
-  background: var(--bg-elev); border:2px solid var(--gold); z-index:4;
-  box-shadow: 0 0 14px rgba(120,190,230,0.6);
+  width:38px; height:38px; border-radius:50%;
+  background: radial-gradient(circle at 35% 30%, var(--gold), var(--accent) 60%, var(--danger-dim) 100%);
+  border:2px solid #1a0a04; z-index:4;
+  box-shadow: 0 0 18px rgba(255,150,70,0.85), inset 0 0 6px rgba(0,0,0,0.4);
+  animation: emberBreathe 2s ease-in-out infinite;
 }
 .final-wheels-row{
   display:flex; justify-content:center; gap: 36px; flex-wrap:wrap; margin-top: 6px;
@@ -448,14 +511,16 @@ body{
 .prize-legend-item{
   display:flex; align-items:center; gap:8px; font-size:11px; color: var(--silver-dim); text-align:left;
 }
-.prize-swatch{ width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+.prize-swatch{ width:10px; height:10px; border-radius:2px; flex-shrink:0; transform:rotate(45deg); }
 .prize-result{
   font-family:var(--f-ui); font-size: 16px; font-weight:700; color: var(--silver-bright);
-  background: var(--panel); border: 1px solid var(--border); border-radius: 5px;
-  padding: 14px 20px; max-width: 220px; text-align:center;
+  background: linear-gradient(160deg, var(--panel), #140a06);
+  border: 1px solid var(--border);
+  clip-path: polygon(6% 0,100% 0,94% 100%,0 100%);
+  padding: 14px 22px; max-width: 220px; text-align:center;
   animation: floatIn .4s ease both;
 }
-.prize-result.good{ border-color: var(--gold); color: var(--gold); box-shadow: 0 0 20px rgba(120,190,230,0.25); }
+.prize-result.good{ border-color: var(--gold); color: var(--gold); box-shadow: 0 0 22px rgba(255,180,90,0.3); }
 .final-gate{
   max-width: 420px; margin: 50px auto 0; text-align:center;
   position: relative; padding: 40px 28px 34px;
@@ -666,70 +731,99 @@ body{
 @keyframes letterPop{ 0%{ opacity:0; transform: translateY(10px) scale(.6); } 100%{ opacity:1; transform: translateY(0) scale(1); } }
 .final-champion-sub{ margin-top:14px; color: var(--silver-dim); font-size:13px; letter-spacing:.5px; }
 .champion-glow{
-  box-shadow: 0 0 30px rgba(60,203,255,0.4), inset 0 0 0 1px rgba(60,203,255,0.5) !important;
+  box-shadow: 0 0 34px rgba(255,150,70,0.5), inset 0 0 0 1px rgba(255,200,140,0.5) !important;
 }
+/* ---- El bracket ahora es una GRIETA DE MAGMA que conecta las losas ---- */
 .bracket{
-  display:flex; flex-direction:column; align-items:center; gap: 16px; margin: 10px 0 20px;
+  position:relative;
+  display:flex; flex-direction:column; align-items:center; gap: 22px; margin: 14px 0 22px;
+}
+.bracket::before{
+  content:''; position:absolute; left:50%; top:0; bottom:0; width:2px; transform:translateX(-50%);
+  background: linear-gradient(180deg, transparent, var(--accent) 15%, var(--gold) 50%, var(--accent) 85%, transparent);
+  opacity:.55; filter: drop-shadow(0 0 6px rgba(255,120,60,0.6));
+  animation: crackFlicker 2.4s ease-in-out infinite;
+  pointer-events:none;
 }
 .bracket-match{
   position:relative;
-  background: linear-gradient(165deg, var(--panel) 0%, var(--bg-elev) 100%);
-  border:1px solid var(--border); border-radius: 6px;
-  padding: 16px 18px; width: 100%; max-width: 360px;
+  background:
+    radial-gradient(ellipse at 80% 0%, rgba(255,120,60,0.10), transparent 60%),
+    linear-gradient(165deg, var(--panel) 0%, var(--bg-elev) 100%);
+  border:1px solid var(--border);
+  clip-path: polygon(0 6%, 4% 0, 96% 0, 100% 6%, 100% 94%, 96% 100%, 4% 100%, 0 94%);
+  padding: 18px 18px 16px; width: 100%; max-width: 360px;
   animation: floatIn .45s ease both;
   transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   overflow:hidden;
 }
 .bracket-match::before{
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background: linear-gradient(90deg, var(--danger-dim), var(--gold));
+  background: linear-gradient(90deg, var(--danger-dim), var(--gold), var(--danger-dim));
+  background-size: 200% 100%;
+  animation: magmaCrawl 4s linear infinite;
 }
 .bracket-match:hover{ transform: translateY(-2px); }
-.bracket-match.active{ border-color: var(--accent-dim); box-shadow: 0 0 24px rgba(159,178,218,0.14), 0 10px 24px rgba(0,0,0,0.3); }
+.bracket-match.active{ border-color: var(--accent); box-shadow: 0 0 26px rgba(255,120,60,0.22), 0 10px 24px rgba(0,0,0,0.35); }
 .bracket-match .match-label{
   font-size: 11px; letter-spacing:1.5px; color: var(--silver-dim); text-transform:uppercase;
   text-align:center; margin-bottom: 10px;
 }
-.bracket-match .match-label::before{ content:'🔥 '; }
+.bracket-match .match-label::before{ content:'🌋 '; }
 .bracket-vs{ display:flex; align-items:center; justify-content:center; gap: 14px; }
 .bracket-player{
-  flex:1; text-align:center; padding: 10px 8px; border-radius: 4px;
-  border: 1px solid var(--border); cursor:pointer; transition: all .15s ease;
+  flex:1; text-align:center; padding: 12px 8px; position:relative;
+  background: linear-gradient(160deg, rgba(255,255,255,0.02), transparent);
+  border: 1px solid var(--border);
+  clip-path: polygon(10% 0,100% 0,90% 100%,0 100%);
+  cursor:pointer; transition: all .15s ease;
   font-family:var(--f-ui); font-weight:600; letter-spacing:.5px; color: var(--silver);
-  position:relative;
 }
 .bracket-player:not(.locked):hover{
   border-color: var(--accent); color: var(--silver-bright);
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 6px 18px rgba(159,178,218,0.2);
+  box-shadow: 0 6px 18px rgba(255,120,60,0.25);
 }
 .bracket-player:not(.locked){ animation: pulseRing 2.2s ease-out infinite; }
 .bracket-player.winner{
-  border-color: var(--gold); color: var(--gold); background: rgba(120,190,230,0.08);
-  box-shadow: 0 0 18px rgba(120,190,230,0.25);
+  border-color: var(--gold); color: var(--gold); background: rgba(255,150,70,0.1);
+  box-shadow: 0 0 18px rgba(255,150,70,0.3);
 }
 .bracket-player.winner::before{
-  content:'👑'; position:absolute; top:-16px; left:50%; transform:translateX(-50%);
+  content:'🔥'; position:absolute; top:-17px; left:50%; transform:translateX(-50%);
   font-size:15px; animation: crownBob 1.6s ease-in-out infinite;
 }
 .bracket-player.locked{ cursor:default; }
 .bracket-vs-sep{
   font-family:var(--f-ui); font-size: 15px; font-weight:800; letter-spacing:2px;
-  color: var(--gold); text-shadow: 0 0 12px rgba(120,190,230,0.5);
+  color: var(--gold); text-shadow: 0 0 12px rgba(255,150,70,0.6);
   animation: vsShake 1.4s ease-in-out infinite;
 }
 .bracket-bye{ font-size: 11px; color: var(--silver-dim); text-align:center; margin-top:8px; }
-.bracket-bye::before{ content:'🛡️ '; }
+.bracket-bye::before{ content:'🗿 '; }
+/* ---- Marcador BO3 → medidor de erupción ---- */
 .bo3-score{
-  text-align:center; font-family:var(--f-mono); font-weight:700; font-size:14px;
-  color: var(--silver-bright); margin: 6px 0 2px; letter-spacing:.5px;
+  text-align:center; font-family:var(--f-mono); font-weight:700; font-size:15px;
+  margin: 8px 0 2px; letter-spacing:.5px;
+  background: linear-gradient(90deg, var(--silver-bright), var(--gold), var(--accent), var(--gold), var(--silver-bright));
+  background-size: 220% auto;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation: magmaCrawl 5s linear infinite;
 }
+/* ---- Narración → losa tallada en piedra ---- */
 .bo3-narration{
-  max-width: 360px; margin: 0 auto 14px; text-align:center;
+  position:relative;
+  max-width: 360px; margin: 4px auto 14px; text-align:center;
   background: linear-gradient(160deg, var(--panel) 0%, var(--bg-elev) 100%);
-  border: 1px solid var(--border); border-left: 3px solid var(--gold);
-  border-radius: 5px; padding: 12px 16px; font-size: 13px; line-height:1.6;
+  border: 1px solid var(--border);
+  clip-path: polygon(0 0, 96% 0, 100% 22%, 100% 100%, 4% 100%, 0 78%);
+  padding: 16px 18px 14px; font-size: 13px; line-height:1.6;
   color: var(--silver-bright); animation: floatIn .35s ease both;
+}
+.bo3-narration::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+  background: linear-gradient(180deg, var(--accent), var(--gold), var(--accent));
+  filter: drop-shadow(0 0 5px rgba(255,150,70,0.6));
 }
 .bo3-narration strong{ color: var(--gold); }
 .bo3-reader-note{
@@ -743,16 +837,25 @@ body{
 .champion-banner .champion-title{
   animation: sparkTwinkle 1.8s ease-in-out infinite;
 }
-.duel-tally{ display:flex; justify-content:center; gap: 14px; margin: 4px 0 30px; flex-wrap:wrap; }
+/* ---- Tally → tótems de obsidiana ---- */
+.duel-tally{ display:flex; justify-content:center; gap: 16px; margin: 6px 0 32px; flex-wrap:wrap; }
 .duel-tally .t-item{
-  text-align:center; background: var(--panel); border:1px solid var(--border); border-radius: 6px;
-  padding: 14px 20px; min-width: 88px; position:relative;
+  position:relative; text-align:center;
+  background: linear-gradient(180deg, var(--panel), #140a06);
+  border:1px solid var(--border);
+  clip-path: polygon(15% 0,85% 0,100% 15%,100% 100%,0 100%,0 15%);
+  padding: 16px 22px 14px; min-width: 88px;
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
+.duel-tally .t-item::after{
+  content:''; position:absolute; left:8px; right:8px; bottom:0; height:3px;
+  background: var(--border); border-radius:2px;
+}
 .duel-tally .t-item:hover{ transform: translateY(-3px); border-color: var(--accent-dim); }
-.duel-tally .t-item.leader{ border-color: var(--gold); box-shadow: 0 0 20px rgba(120,190,230,0.18); }
+.duel-tally .t-item.leader{ border-color: var(--gold); box-shadow: 0 0 22px rgba(255,150,70,0.22); }
+.duel-tally .t-item.leader::after{ background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent)); box-shadow: 0 0 10px rgba(255,150,70,0.7); }
 .duel-tally .t-item.leader::before{
-  content:'🏆'; position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+  content:'🔥'; position:absolute; top:-15px; left:50%; transform:translateX(-50%);
   font-size:16px; animation: crownBob 1.8s ease-in-out infinite;
 }
 .duel-tally .t-name{ font-size: 12px; color: var(--silver-dim); letter-spacing:.5px; margin-top:4px; }
@@ -760,21 +863,25 @@ body{
   font-family:var(--f-mono); font-size: 26px; color: var(--silver-bright);
   text-shadow: 0 0 0 transparent; transition: text-shadow .2s ease;
 }
-.duel-tally .t-item.leader .t-wins{ color: var(--gold); text-shadow: 0 0 14px rgba(120,190,230,0.4); }
+.duel-tally .t-item.leader .t-wins{ color: var(--gold); text-shadow: 0 0 14px rgba(255,150,70,0.5); }
+/* ---- Historial → registro de ceniza ---- */
 .duel-history-item{
   position:relative;
-  background: var(--panel); border:1px solid var(--border); border-radius: 5px;
-  padding: 14px 16px 14px 20px; margin-bottom: 10px; font-size: 13px;
+  background: linear-gradient(100deg, var(--panel), #140a06 85%);
+  border:1px solid var(--border);
+  clip-path: polygon(0 0, 100% 0, 100% 92%, 98% 100%, 0 100%);
+  padding: 14px 16px 14px 24px; margin-bottom: 10px; font-size: 13px;
   transition: transform .15s ease, border-color .15s ease;
   animation: floatIn .35s ease both;
 }
 .duel-history-item::before{
-  content:''; position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:3px;
-  background: linear-gradient(180deg, var(--gold), transparent);
+  content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+  width:7px; height:7px; border-radius:50%;
+  background: var(--accent); box-shadow: 0 0 8px 2px rgba(255,120,60,0.7);
 }
 .duel-history-item:hover{ transform: translateX(2px); border-color: var(--accent-dim); }
 .duel-history-item .dh-name{ color: var(--silver-bright); font-weight:600; }
-.duel-history-item .dh-name::before{ content:'⚔️ '; }
+.duel-history-item .dh-name::before{ content:'🌋 '; }
 .duel-history-item .dh-date{ color: var(--silver-dim); font-size: 11px; margin-bottom:4px; }
 .duel-history-item .dh-champ{ color: var(--gold); font-weight:700; }
 .duel-history-item .dh-reward{ margin-top:6px; font-size: 12px; color: var(--silver-dim); }
@@ -796,7 +903,7 @@ body{
 }
 .casino-topbar::before{
   content:""; position:absolute; inset:0; border-radius: 7px; padding:1px;
-  background: linear-gradient(120deg, var(--neon-pink), var(--neon-cyan), var(--neon-yellow), var(--neon-pink));
+  background: linear-gradient(120deg, var(--accent), var(--gold), var(--accent));
   background-size: 300% 100%;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
@@ -807,11 +914,11 @@ body{
   padding: 8px 12px; color: var(--silver-bright); font-family:var(--f-ui); font-weight:600; font-size:14px;
 }
 .casino-balance{
-  font-family:var(--f-mono); font-size: 20px; color: var(--neon-yellow);
-  text-shadow: 0 0 10px rgba(255,225,79,0.5);
+  font-family:var(--f-mono); font-size: 20px; color: var(--gold);
+  text-shadow: 0 0 10px rgba(255,180,90,0.5);
   animation: coinGlow 2.4s ease-in-out infinite;
 }
-@keyframes coinGlow{ 0%,100%{ text-shadow: 0 0 8px rgba(255,225,79,0.4); } 50%{ text-shadow: 0 0 18px rgba(255,225,79,0.85); } }
+@keyframes coinGlow{ 0%,100%{ text-shadow: 0 0 8px rgba(255,180,90,0.4); } 50%{ text-shadow: 0 0 18px rgba(255,180,90,0.85); } }
 .mascot{
   display:flex; flex-direction:column; align-items:center; gap:10px;
   max-width: 260px; margin: 0 auto 24px;
@@ -861,49 +968,62 @@ body{
 .hall-mascot{ margin-bottom: -46px; }
 }
 .casino-hall{
-
-
   position: relative;
-  max-width: 920px; margin: 0 auto;
+  max-width: 940px; margin: 0 auto;
   padding: 30px 18px 10px;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,120,60,0.10), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(255,120,60,0.08), transparent 45%),
+    repeating-linear-gradient(100deg, rgba(0,0,0,0.18) 0 3px, transparent 3px 34px),
+    repeating-linear-gradient(10deg, rgba(0,0,0,0.14) 0 2px, transparent 2px 28px);
+  border-radius: 14px;
 }
 .hall-title{
   position: relative; z-index: 2;
-  text-align:center; margin: 6px 0 34px;
+  text-align:center; margin: 6px 0 10px;
   font-family:var(--f-ui); font-weight:800; letter-spacing:5px;
   font-size: 26px; text-transform:uppercase;
-  background: linear-gradient(100deg, var(--neon-pink) 0%, var(--neon-yellow) 30%, var(--neon-cyan) 60%, var(--neon-pink) 100%);
+  background: linear-gradient(100deg, var(--accent) 0%, var(--gold) 30%, var(--silver-bright) 55%, var(--gold) 80%, var(--accent) 100%);
   background-size: 300% 100%;
   -webkit-background-clip:text; background-clip:text; color:transparent;
   animation: hallTitleShimmer 6s linear infinite;
   text-shadow: none;
 }
+.hall-title::after{
+  content:'⛏️ la guarida del contrabandista ⛏️';
+  display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:3px;
+  color: var(--silver-dim); text-transform:uppercase; margin: 6px 0 28px; -webkit-text-fill-color: var(--silver-dim);
+}
 @keyframes hallTitleShimmer{ 0%{ background-position: 0% 0; } 100%{ background-position: 300% 0; } }
 .hall-grid{
-  display:grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+  display:grid; grid-template-columns: repeat(3, 1fr); gap: 26px 22px;
   align-items: start;
   position: relative; z-index: 2;
 }
+.hall-grid > .hall-card:nth-child(3n+2){ transform: translateY(14px); }
 @media (max-width: 720px){
 .hall-grid{ grid-template-columns: 1fr; max-width: 320px; margin: 0 auto; }
+.hall-grid > .hall-card:nth-child(3n+2){ transform: none; }
 }
 .hall-card{
   position: relative;
   cursor:pointer;
-  border-radius: 9px;
   padding: 2px;
   opacity: 0; transform: translateY(26px);
   animation: hallEnter .6s cubic-bezier(.2,.85,.3,1) forwards;
   transition: transform .25s cubic-bezier(.2,.8,.2,1);
 }
+.hall-grid > .hall-card:nth-child(3n+2){ animation-name: hallEnter2; }
+@keyframes hallEnter2{ to{ opacity:1; transform: translateY(14px); } }
 .hall-card:nth-child(1){ animation-delay: .05s; }
 .hall-card:nth-child(2){ animation-delay: .2s; }
 .hall-card:nth-child(3){ animation-delay: .35s; }
 @keyframes hallEnter{ to{ opacity:1; transform: translateY(0); } }
-.hall-card:hover{ transform: translateY(-8px) scale(1.03); }
-.hall-card:active{ transform: translateY(-3px) scale(1.01); }
+.hall-card:hover{ transform: translateY(-8px) scale(1.03) !important; }
+.hall-card:active{ transform: translateY(-3px) scale(1.01) !important; }
 .hall-card-border{
-  border-radius: 9px; padding: 3px;
+  clip-path: polygon(8% 0,92% 0,100% 10%,100% 90%,92% 100%,8% 100%,0 90%,0 10%);
+  padding: 3px;
   background-size: 260% 260%;
   animation: hallBorderFlow 5s ease infinite;
 }
@@ -913,8 +1033,11 @@ body{
 @keyframes hallBorderFlow{ 0%,100%{ background-position: 0% 50%; } 50%{ background-position: 100% 50%; } }
 .hall-card-inner{
   position:relative; overflow:hidden;
-  background: radial-gradient(circle at 50% -10%, rgba(255,255,255,0.06), transparent 60%), var(--panel);
-  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255,255,255,0.06), transparent 60%),
+    radial-gradient(ellipse at 50% 115%, rgba(255,120,60,0.14), transparent 60%),
+    linear-gradient(180deg, var(--panel), #140a06 120%);
+  clip-path: polygon(6% 0,94% 0,100% 8%,100% 100%,0 100%,0 8%);
   padding: 30px 16px 24px;
   text-align:center;
 }
@@ -1378,6 +1501,28 @@ body{
 .hall-card.g-plinko .hall-card-border{ background-image: linear-gradient(120deg, var(--neon-pink), var(--neon-cyan), var(--neon-yellow)); }
 .hall-card.g-plinko .hall-card-icon{ filter: drop-shadow(0 0 18px var(--neon-pink)); }
 .hall-card.g-plinko .hall-card-bulbs .slot-bulb{ background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink); }
+.hall-card.g-grieta .hall-card-border{ background-image: linear-gradient(120deg, var(--accent), var(--gold), var(--accent)); }
+.hall-card.g-grieta .hall-card-icon{ filter: drop-shadow(0 0 18px var(--accent)); }
+.hall-card.g-grieta .hall-card-bulbs .slot-bulb{ background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+/* ---- Tablero de La Grieta: pozo de niveles ---- */
+.grieta-intro{ max-width:420px; margin:0 auto 16px; text-align:center; font-size:13px; color:var(--silver-dim); line-height:1.6; }
+.grieta-shaft{
+  display:flex; flex-direction:column-reverse; gap:6px; max-width:420px; margin:0 auto 16px;
+}
+.grieta-level{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:9px 14px; border-radius:4px; border:1px solid var(--border);
+  background: linear-gradient(90deg, var(--panel), var(--bg-elev));
+  font-family:var(--f-mono); font-size:12px; color:var(--silver-dim);
+  transition: all .2s ease;
+}
+.grieta-level .gl-mult{ color:var(--silver-bright); font-weight:700; }
+.grieta-level.cleared{ border-color: var(--gold); background: linear-gradient(90deg, rgba(255,150,70,0.14), transparent); }
+.grieta-level.cleared .gl-mult{ color: var(--gold); }
+.grieta-level.current{ border-color: var(--accent); box-shadow: 0 0 14px rgba(255,120,60,0.3); animation: crackFlicker 1.6s ease-in-out infinite; }
+.grieta-level.current .gl-risk{ color: var(--danger); }
+.grieta-level.collapsed{ border-color: var(--danger); background: rgba(224,67,95,0.16); }
+.grieta-level.collapsed .gl-mult{ color: var(--danger); }
 .loteria-wrap{ display:flex; flex-direction:column; align-items:center; gap: 22px; }
 .loteria-drum-name{ font-family:var(--f-ui); font-weight:700; font-size: 13px; color: var(--silver-bright); text-align:center; }
 .loteria-pot{ font-family:var(--f-mono); font-size: 16px; color: var(--silver-bright); }
@@ -2481,6 +2626,130 @@ let minesChipValue = 5;
 let minesBetAmount = 0;
 let minesCount = 5;
 let minesState = { phase:'bet', grid:[], revealed:[], resultText:'', resultClass:'' };
+
+// ================= LA GRIETA (mecánica nueva: minería de riesgo por niveles) =================
+// Cada picotazo baja un nivel más en la grieta: sube el multiplicador pero también
+// la probabilidad de derrumbe. Te puedes retirar con lo acumulado cuando quieras.
+const GRIETA_LEVELS = [
+  { mult:1.15, risk:0.08 }, { mult:1.35, risk:0.13 }, { mult:1.65, risk:0.18 },
+  { mult:2.10, risk:0.24 }, { mult:2.80, risk:0.30 }, { mult:3.90, risk:0.37 },
+  { mult:5.60, risk:0.45 }, { mult:8.40, risk:0.54 }, { mult:13.0, risk:0.64 },
+  { mult:22.0, risk:0.76 },
+];
+const GRIETA_CHIP_VALUES = [1, 5, 10, 25, 50];
+const GRIETA_LINES = [
+  'Cuanto más hondo bajes, más brilla... y más cruje.',
+  'La grieta no perdona a los que se quedan mucho rato.',
+  'He visto entrenadores salir forrados. Y he visto otros que ya no salieron.',
+  'Cada nivel es una decisión: ¿ambición o cordura?',
+];
+let grietaChipValue = 5;
+let grietaBetAmount = 0;
+let grietaState = { phase:'bet', levelIndex:0, multiplier:1, resultText:'', resultClass:'' };
+function setGrietaChip(v){ grietaChipValue = v; render(); }
+function grietaAddChip(){ grietaBetAmount = (grietaBetAmount||0) + grietaChipValue; render(); }
+function grietaClearBet(){ grietaBetAmount = 0; render(); }
+
+async function grietaStartRound(){
+  const bet = grietaBetAmount||0;
+  if(bet <= 0){ toast('Elige una apuesta primero.'); return; }
+  if((tickets[casinoPlayer]||0) < bet){ toast('No tienes suficientes tickets.'); return; }
+  await addTickets(casinoPlayer, -bet, 'Apuesta en La Grieta');
+  grietaState = { phase:'playing', levelIndex:0, multiplier:1, resultText:'', resultClass:'' };
+  playSound('spin');
+  render();
+}
+
+async function grietaDescend(){
+  if(grietaState.phase !== 'playing') return;
+  const lvl = GRIETA_LEVELS[grietaState.levelIndex];
+  if(!lvl) return;
+  const collapsed = Math.random() < lvl.risk;
+  if(collapsed){
+    grietaState.phase = 'result';
+    grietaState.resultText = `⛏️💥 ¡La grieta se derrumba! Pierdes los ${grietaBetAmount} tickets apostados.`;
+    grietaState.resultClass = 'lose';
+    playSound('lose');
+    render();
+    return;
+  }
+  playSound('cardFlip');
+  grietaState.multiplier = lvl.mult;
+  grietaState.levelIndex += 1;
+  if(grietaState.levelIndex >= GRIETA_LEVELS.length){
+    await grietaCashOut(); // ha llegado al fondo de la grieta
+    return;
+  }
+  render();
+}
+
+async function grietaCashOut(){
+  if(grietaState.phase !== 'playing') return;
+  if(grietaState.levelIndex === 0){ toast('Pica al menos un nivel antes de retirarte.'); return; }
+  const mult = grietaState.multiplier;
+  const payout = Math.round(grietaBetAmount * mult);
+  grietaState.phase = 'result';
+  grietaState.resultText = `Sales de la grieta con x${mult.toFixed(2)} → ¡ganas ${payout} tickets! ${pickLine(WIN_REACTIONS)}`;
+  grietaState.resultClass = 'win';
+  playSound(payout >= grietaBetAmount*3 ? 'bigwin' : 'win');
+  if(payout >= grietaBetAmount*3) fireConfetti({ count: 120 });
+  await addTickets(casinoPlayer, payout, `Retirada en La Grieta (x${mult.toFixed(2)})`);
+  render();
+}
+
+function grietaNewRound(){
+  grietaState = { phase:'bet', levelIndex:0, multiplier:1, resultText:'', resultClass:'' };
+  render();
+}
+
+function renderGrietaTab(){
+  const balance = tickets[casinoPlayer]||0;
+  if(grietaState.phase === 'bet'){
+    return `
+      <div class="casino-mode-line">${casinoModeLine}</div>
+      <div class="grieta-intro">⛏️ Cada nivel que picas suma multiplicador... y riesgo de derrumbe. Retírate cuando quieras.</div>
+      <div class="bet-panel" style="max-width:420px;">
+        <div class="bet-panel-header">Fichas de ${NAMES[casinoPlayer]} · 🎟️ ${balance}</div>
+        <div class="chip-selector">
+          ${GRIETA_CHIP_VALUES.map(v=>`<div class="chip-denom ${v===grietaChipValue?'active':''}" onclick="setGrietaChip(${v})"><span>${v}</span></div>`).join('')}
+        </div>
+        <div class="current-bet-row">
+          <div class="current-bet-amount">Apuesta: 🎟️ ${grietaBetAmount||0}</div>
+          <button class="chip-add-btn" onclick="grietaAddChip()">+ Añadir ficha</button>
+          <button class="chip-clear-btn" onclick="grietaClearBet()">Vaciar</button>
+        </div>
+        <button class="primary" style="width:100%;margin-top:10px;" onclick="grietaStartRound()">⛏️ Bajar a la grieta</button>
+      </div>
+    `;
+  }
+  const nextLvl = GRIETA_LEVELS[grietaState.levelIndex];
+  const potential = grietaState.levelIndex>0 ? Math.round(grietaBetAmount * grietaState.multiplier) : 0;
+  return `
+    <div class="casino-mode-line">${casinoModeLine}</div>
+    <div class="grieta-shaft">
+      ${GRIETA_LEVELS.map((l,i)=>{
+        let cls = 'grieta-level';
+        if(i < grietaState.levelIndex) cls += ' cleared';
+        else if(i === grietaState.levelIndex && grietaState.phase==='playing') cls += ' current';
+        else if(grietaState.phase==='result' && i===grietaState.levelIndex) cls += ' collapsed';
+        return `<div class="${cls}"><span class="gl-depth">Nivel ${i+1}</span><span class="gl-mult">x${l.mult.toFixed(2)}</span><span class="gl-risk">${Math.round(l.risk*100)}% riesgo</span></div>`;
+      }).join('')}
+    </div>
+    <div class="mines-status-row">
+      <div>Apuesta: 🎟️ ${grietaBetAmount}</div>
+      <div>Multiplicador actual: <b>x${grietaState.multiplier.toFixed(2)}</b></div>
+      <div>Si te retiras ahora: <b>🎟️ ${potential}</b></div>
+    </div>
+    ${grietaState.phase==='playing' ? `
+      <div class="duel-top-actions" style="margin-top:14px;">
+        <button class="primary" onclick="grietaDescend()">⛏️ Picar más hondo${nextLvl?` (${Math.round(nextLvl.risk*100)}% riesgo)`:''}</button>
+        ${grietaState.levelIndex>0 ? `<button class="ghost" onclick="grietaCashOut()">💰 Salir con el botín</button>` : ''}
+      </div>
+    ` : ''}
+    ${grietaState.resultText ? `<div class="result-banner ${grietaState.resultClass}">${grietaState.resultText}</div>` : ''}
+    ${grietaState.phase==='result' ? `<button class="primary" style="width:100%;margin-top:10px;" onclick="grietaNewRound()">Bajar otra vez</button>` : ''}
+  `;
+}
 function minesMultiplier(mineCount, safeRevealed){
   // formula estandar de casino tipo "mines": producto de probabilidades
   // inversas de no pillar una mina en cada paso, con un 3% de margen de casa
@@ -4457,6 +4726,16 @@ function renderCasinoFloor(){
             </div>
           </div>
         </div>
+        <div class="hall-card g-grieta" onclick="openCasinoZone('grieta')">
+          <div class="hall-card-border">
+            <div class="hall-card-inner">
+              <div class="hall-card-icon">⛏️</div>
+              <div class="hall-card-title">La Grieta</div>
+              <div class="hall-card-sub">Baja niveles a pulso · retírate antes del derrumbe</div>
+              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
+            </div>
+          </div>
+        </div>
         <div class="hall-card g-plinko" onclick="openCasinoZone('plinko')">
           <div class="hall-card-border">
             <div class="hall-card-inner">
@@ -4541,6 +4820,7 @@ function openCasinoZone(tab){
   else if(tab==='nueve'){ casinoModeLine = pickLine(NINE_LINES); nineState = { phase:'bet', playerCards:[], bankerCards:[], choice:null, resultText:'', resultClass:'' }; }
   else if(tab==='eggwheel'){ eggWheelResult = null; }
   else if(tab==='mines'){ minesState = { phase:'bet', grid:[], revealed:[], resultText:'', resultClass:'' }; }
+  else if(tab==='grieta'){ casinoModeLine = pickLine(GRIETA_LINES); grietaState = { phase:'bet', levelIndex:0, multiplier:1, resultText:'', resultClass:'' }; }
   else if(tab==='crash'){ crashState = { phase:'bet', multiplier:1.00, crashPoint:1.00, cashedOutAt:null, resultText:'', resultClass:'' }; if(crashInterval){ clearInterval(crashInterval); crashInterval=null; } }
   else if(tab==='plinko'){ if(!plinkoAnim){ plinkoDropping = false; plinkoLastResult = null; } }
   render();
@@ -4571,6 +4851,7 @@ function mascotContext(){
   if(casinoTab==='blackjack') return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
   if(casinoTab==='nueve')     return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
   if(casinoTab==='eggwheel')  return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
+  if(casinoTab==='grieta')    return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
   return null;
 }
 
@@ -4603,7 +4884,7 @@ function renderCasino(app){
       </div>
 
       <div id="casino-content">
-        ${casinoTab==='slots' ? renderSlotsTab() : casinoTab==='roulette' ? renderRouletteTab() : casinoTab==='blackjack' ? renderBlackjackTab() : casinoTab==='nueve' ? renderNineTab() : casinoTab==='eggwheel' ? renderEggWheelTab() : casinoTab==='mines' ? renderMinesTab() : casinoTab==='crash' ? renderCrashTab() : casinoTab==='plinko' ? renderPlinkoTab() : renderLoteriaTab()}
+        ${casinoTab==='slots' ? renderSlotsTab() : casinoTab==='roulette' ? renderRouletteTab() : casinoTab==='blackjack' ? renderBlackjackTab() : casinoTab==='nueve' ? renderNineTab() : casinoTab==='eggwheel' ? renderEggWheelTab() : casinoTab==='mines' ? renderMinesTab() : casinoTab==='grieta' ? renderGrietaTab() : casinoTab==='crash' ? renderCrashTab() : casinoTab==='plinko' ? renderPlinkoTab() : renderLoteriaTab()}
       </div>
     `;
   }
