@@ -2189,6 +2189,33 @@ body.casino-mode main{ max-width:1320px; }
 .in-casino .mines-grid{ width:100%; max-width:560px; margin:0 auto; }
 .in-casino .mines-status-row{ display:flex; gap:22px; flex-wrap:wrap; justify-content:center; font-family:var(--f-ui); color:var(--cz-text); margin:14px 0; }
 
+
+/* ---------------------------------------------------------- ELO */
+.elo-card{ padding:18px 20px 16px; }
+.elo-top{ display:grid; grid-template-columns:minmax(150px,220px) minmax(0,1fr); gap:20px; align-items:center; margin-bottom:14px; }
+@media (max-width:640px){ .elo-top{ grid-template-columns:1fr; } }
+.elo-rating{ text-align:center; padding:12px 8px; border-radius:10px; border:1px solid color-mix(in srgb,var(--tier) 55%,#000); background:radial-gradient(circle at 50% 0%, color-mix(in srgb,var(--tier) 22%,transparent), transparent 70%); }
+.elo-num{ font-family:var(--f-display); font-weight:800; font-size:52px; line-height:1; color:var(--tier); text-shadow:0 0 22px color-mix(in srgb,var(--tier) 60%,transparent); }
+.elo-tier{ margin-top:6px; font-family:var(--f-ui); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; font-size:13px; color:var(--silver-bright); }
+.elo-next{ margin-top:4px; font-family:var(--f-ui); font-size:11px; letter-spacing:.6px; color:var(--silver-dim); }
+.elo-spark{ width:100%; height:92px; display:block; }
+.elo-line{ fill:none; stroke:var(--sapphire); stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(60,203,255,.6)); }
+.elo-base{ stroke:rgba(255,255,255,.14); stroke-dasharray:4 4; }
+.elo-dot.locke{ fill:var(--magma); stroke:#fff; stroke-width:1; }
+.elo-dot.now{ fill:#fff; stroke:var(--sapphire); stroke-width:2; }
+.elo-chart-legend{ font-family:var(--f-ui); font-size:11px; letter-spacing:.5px; color:var(--silver-dim); margin-top:4px; }
+.elo-chart-legend .lk{ display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--magma); margin-right:4px; vertical-align:middle; }
+.elo-stats{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin:6px 0 12px; }
+@media (max-width:820px){ .elo-stats{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.elo-stat{ padding:9px 10px; border-radius:6px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); }
+.elo-stat b{ display:block; font-family:var(--f-mono); font-size:15px; color:var(--silver-bright); }
+.elo-stat span{ display:block; margin-top:3px; font-family:var(--f-ui); font-size:10.5px; letter-spacing:.6px; color:var(--silver-dim); text-transform:uppercase; }
+.elo-h2h-wrap{ display:grid; gap:6px; }
+.elo-h2h{ display:grid; grid-template-columns:1fr auto auto; gap:14px; font-family:var(--f-ui); font-size:13px; padding:6px 10px; border-radius:4px; background:rgba(255,255,255,.035); }
+.elo-h2h .n{ color:var(--silver); font-weight:600; } .elo-h2h .rec{ font-family:var(--f-mono); color:var(--silver-bright); } .elo-h2h .pr{ color:var(--sapphire); }
+.elo-note{ margin-top:10px; font-size:11.5px; color:var(--magma); opacity:.85; }
+.chipx.elo{ color:#9fe6ff; border-color:rgba(60,203,255,.45); background:rgba(60,203,255,.1); }
+
 </style>
 </head>
 <body>
@@ -4322,7 +4349,9 @@ const TRAINER_PAIRS = [['iker','joel'], ['iker','alex'], ['joel','alex']].filter
 function renderRivalryLine(a, b){
   const { wins, total } = headToHeadTally(a, b);
   const usR = getUltraSolRecord(a, b);
-  const usLine = usR ? `<div class="h2h-line" style="opacity:.8;">🌞 Ultra Sol: ${NAMES[a]} ${usR[a]} - ${usR[b]} ${NAMES[b]} (sin estrellas de la final; Iker ganó con 3 Potencia)</div>` : '';
+  const pa = Math.round(100 * eloWinProb(a, b));
+  const eloLine = `<div class="h2h-line" style="opacity:.9;">⚡ Elo: ${NAMES[a]} ${eloOf(a)} (${pa}%) · ${NAMES[b]} ${eloOf(b)} (${100 - pa}%)</div>`;
+  const usLine = eloLine + (usR ? `<div class="h2h-line" style="opacity:.8;">🌞 Ultra Sol: ${NAMES[a]} ${usR[a]} - ${usR[b]} ${NAMES[b]} (sin estrellas de la final; Iker ganó con 3 Potencia)</div>` : '');
   if(total === 0) return `<div class="h2h-line">⚔️ Primer cara a cara en Hoenn entre ${NAMES[a]} y ${NAMES[b]}</div>${usLine}`;
   return `<div class="h2h-line">⚔️ Histórico: ${NAMES[a]} ${wins[a]} - ${wins[b]} ${NAMES[b]}</div>${usLine}`;
 }
@@ -4429,6 +4458,7 @@ function lbRow(t, r){
           ${segBar(h)}
           <div class="lb-chips">
             <span class="chipx gold">🏆 ${wins} combate${wins===1?'':'s'}</span>
+            <span class="chipx elo" title="Elo (combates + lockes)">⚡ ${eloOf(t)}</span>
             <span class="chipx">🏅 ${badgeCountOf(t)}/${GYM_COUNT}</span>
             <span class="chipx">💰 ${(money[t]||0).toLocaleString('es-ES')}</span>
             <span class="chipx">🎯 ${cap ? 'Cap Nv.'+cap.cap : 'sin cap'}</span>
@@ -4539,6 +4569,7 @@ function renderProfile(app, t){
             <div class="capline">🎯 LEVEL CAP: ${cap ? `<b>Nv. ${cap.cap}</b> (hasta superar ${cap.icon} ${cap.label})` : 'sin cap'}</div>
             ${over.length ? `<div class="overcap">⚠️ ${over.length} Pokémon por encima del level cap: ${over.map(p=>`${p.nickname} (Nv.${p.level})`).join(', ')}</div>` : ''}
           </div>
+          ${renderEloCard(t)}
         </div>
 
         <div class="section-label">🎁 Premios pendientes</div>
@@ -7304,6 +7335,211 @@ function getUltraSolRecord(a, b){
   const key = [a,b].sort().join('-');
   return ULTRASOL_HISTORY[key] || null;
 }
+/* ==================== SISTEMA ELO (combates + lockes) ====================
+   Un único Elo por persona que mezcla las dos cosas que importan: los COMBATES
+   ganados (partidas al mejor de 3 de la Arena) y los LOCKES ganados (ganar una
+   partida entera del Triolocke pesa bastante más que un combate).
+   - Todos empiezan en 1000.
+   - Combate: Elo clásico (K=24). Si se conoce el marcador, un 2-0 mueve un 20 %
+     más que un 2-1.
+   - Locke ganado: cuenta como una victoria "gorda" (K=32) contra CADA rival de
+     esa partida.
+   El historial se recalcula entero cada vez (duelHistory de esta partida +
+   LEGACY_COMBATS y LOCKE_RESULTS de las partidas anteriores), no hay nada que
+   guardar en el backend. ============================================================== */
+const ELO_START = 1000, ELO_K_COMBAT = 24, ELO_K_LOCKE = 32, ELO_MARGIN_20 = 1.2;
+
+// Orden cronológico de las partidas anteriores a Rubí Omega.
+const ELO_LEGACY_GAMES = ['Pokémon SoulSilver', 'Pokémon X', 'Pokémon Ultra Sol'];
+
+// Quién ganó el LOCKE de cada partida anterior (null = todavía sin dato, no puntúa).
+const LOCKE_RESULTS = [
+  { game: 'Pokémon SoulSilver',  players: ['iker','alex','joel'], winner: null },
+  { game: 'Pokémon X',           players: ['iker','alex','joel'], winner: null },
+  { game: 'Pokémon Ultra Sol',   players: ['iker','alex'],        winner: 'iker' },
+];
+
+// Combates de las partidas anteriores, en orden cronológico:
+//   { game, winner, loser, score:'2-1' (opcional) }
+// PROVISIONAL: de momento se reconstruyen a partir de los marcadores totales que ya
+// estaban en la web (SoulSilver, X y Ultra Sol), repartiendo las victorias de forma
+// uniforme. Cuando se tenga la lista real, se sustituye este array y se pone
+// ELO_LEGACY_PROVISIONAL = false.
+const ELO_LEGACY_PROVISIONAL = true;
+function eloBuildLegacyFromTotals(){
+  const sources = [
+    ['Pokémon SoulSilver', SOULSILVER_HISTORY],
+    ['Pokémon X', POKEMON_X_HISTORY],
+    ['Pokémon Ultra Sol', ULTRASOL_HISTORY],
+  ];
+  const out = [];
+  sources.forEach(([game, table]) => {
+    const perPair = Object.entries(table).map(([key, rec]) => {
+      const [a, b] = key.split('-');
+      const na = rec[a] || 0, nb = rec[b] || 0, n = na + nb;
+      const seq = Array(n).fill(a);
+      for(let k = 0; k < nb; k++) seq[Math.min(n - 1, Math.floor((k + 0.5) * n / nb))] = b;
+      return seq.map(w => ({ game, winner: w, loser: w === a ? b : a }));
+    });
+    let i = 0, more = true;
+    while(more){ // reparto entre parejas por turnos
+      more = false;
+      perPair.forEach(seq => { if(i < seq.length){ out.push(seq[i]); more = true; } });
+      i++;
+    }
+  });
+  return out;
+}
+const LEGACY_COMBATS = eloBuildLegacyFromTotals();
+
+const ELO_TIERS = [
+  { min: 0,    name: 'Novato',            icon: '🌱', color: '#9ed8a8' },
+  { min: 950,  name: 'Entrenador',        icon: '🎒', color: '#7fc4ff' },
+  { min: 1050, name: 'Veterano',          icon: '🎖️', color: '#ffd26a' },
+  { min: 1150, name: 'Líder de gimnasio', icon: '🏅', color: '#ff9a5a' },
+  { min: 1250, name: 'Alto Mando',        icon: '🔥', color: '#ff5a7a' },
+  { min: 1350, name: 'Campeón',           icon: '👑', color: '#f5d76e' },
+];
+function eloTier(r){ let t = ELO_TIERS[0]; ELO_TIERS.forEach(x => { if(r >= x.min) t = x; }); return t; }
+function eloExpected(ra, rb){ return 1 / (1 + Math.pow(10, (rb - ra) / 400)); }
+function eloScoreOf(games, a, b){
+  const s = {}; s[a] = 0; s[b] = 0;
+  (games || []).forEach(w => { if(w in s) s[w]++; });
+  return s;
+}
+
+let _eloCache = null, _eloKey = '';
+function computeElo(){
+  const hist = duelHistory || [];
+  const key = hist.length + ':' + (hist[0] ? hist[0].id : '') + ':' + (hist[hist.length - 1] ? hist[hist.length - 1].id : '');
+  if(_eloCache && _eloKey === key) return _eloCache;
+
+  const R = {}, series = {}, st = {};
+  TRAINERS.forEach(t => {
+    R[t] = ELO_START;
+    series[t] = [{ elo: ELO_START, label: 'Inicio', type: 'start' }];
+    st[t] = { w: 0, l: 0, streak: 0, best: 0, peak: ELO_START, lockes: 0, fromCombats: 0, fromLockes: 0, curW: 0, curL: 0 };
+  });
+  const h2h = {}; // 'a-b' (ordenado) -> { a: n, b: n }
+
+  const applyCombat = (game, w, l, m, tag) => {
+    if(!(w in R) || !(l in R)) return;
+    const e = eloExpected(R[w], R[l]);
+    const d = ELO_K_COMBAT * (m || 1) * (1 - e);
+    R[w] += d; R[l] -= d;
+    st[w].fromCombats += d; st[l].fromCombats -= d;
+    st[w].w++; st[l].l++;
+    st[w].streak = st[w].streak > 0 ? st[w].streak + 1 : 1;
+    st[l].streak = st[l].streak < 0 ? st[l].streak - 1 : -1;
+    st[w].best = Math.max(st[w].best, st[w].streak);
+    if(tag === 'run'){ st[w].curW++; st[l].curL++; }
+    const k = [w, l].sort().join('-');
+    (h2h[k] = h2h[k] || {})[w] = ((h2h[k] || {})[w] || 0) + 1;
+    [w, l].forEach(t => { st[t].peak = Math.max(st[t].peak, R[t]); });
+    series[w].push({ elo: R[w], label: `${game}: gana a ${NAMES[l]}`, type: 'combat', d });
+    series[l].push({ elo: R[l], label: `${game}: pierde con ${NAMES[w]}`, type: 'combat', d: -d });
+  };
+  const applyLocke = (game, players, winner) => {
+    if(!winner || !(winner in R)) return;
+    players.filter(p => p !== winner && p in R).forEach(o => {
+      const e = eloExpected(R[winner], R[o]);
+      const d = ELO_K_LOCKE * (1 - e);
+      R[winner] += d; R[o] -= d;
+      st[winner].fromLockes += d; st[o].fromLockes -= d;
+    });
+    st[winner].lockes++;
+    players.filter(p => p in R).forEach(t => {
+      st[t].peak = Math.max(st[t].peak, R[t]);
+      series[t].push({ elo: R[t], label: `${game}: locke ${t === winner ? 'GANADO' : 'perdido'}`, type: 'locke' });
+    });
+  };
+
+  ELO_LEGACY_GAMES.forEach(game => {
+    LEGACY_COMBATS.filter(c => c.game === game).forEach(c => {
+      let m = 1;
+      if(c.score){ const p = c.score.split('-').map(Number); if(p[0] === 2 && p[1] === 0) m = ELO_MARGIN_20; }
+      applyCombat(game, c.winner, c.loser, m);
+    });
+    const lk = LOCKE_RESULTS.find(x => x.game === game);
+    if(lk) applyLocke(game, lk.players, lk.winner);
+  });
+
+  // Rubí Omega: duelHistory guarda el más reciente primero → del más antiguo al más nuevo
+  [...hist].reverse().forEach(h => {
+    const one = (c, score) => {
+      if(!c || !c.winner) return;
+      const l = c.winner === c.p1 ? c.p2 : c.p1;
+      let m = 1;
+      if(score && score[c.winner] === 2 && score[l] === 0) m = ELO_MARGIN_20;
+      applyCombat('Rubí Omega', c.winner, l, m, 'run');
+    };
+    one(h.match1, h.match1Score);
+    one(h.final, h.finalScore);
+  });
+
+  _eloCache = { R, series, st, h2h };
+  _eloKey = key;
+  return _eloCache;
+}
+function eloOf(t){ return Math.round(computeElo().R[t] || ELO_START); }
+function eloWinProb(a, b){ const E = computeElo().R; return eloExpected(E[a] || ELO_START, E[b] || ELO_START); }
+
+function eloSparkline(t){
+  const s = computeElo().series[t];
+  const W = 320, H = 92, P = 8;
+  const vals = s.map(p => p.elo);
+  const lo = Math.min(...vals, ELO_START) - 12, hi = Math.max(...vals, ELO_START) + 12;
+  const x = i => P + (s.length === 1 ? 0 : i * (W - 2 * P) / (s.length - 1));
+  const y = v => H - P - (v - lo) * (H - 2 * P) / (hi - lo || 1);
+  const pts = s.map((p, i) => `${x(i).toFixed(1)},${y(p.elo).toFixed(1)}`).join(' ');
+  const base = y(ELO_START).toFixed(1);
+  const dots = s.map((p, i) => p.type === 'locke'
+      ? `<circle cx="${x(i).toFixed(1)}" cy="${y(p.elo).toFixed(1)}" r="4.2" class="elo-dot locke"><title>${p.label}</title></circle>` : '').join('');
+  const last = s[s.length - 1];
+  return `<svg class="elo-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="${P}" x2="${W - P}" y1="${base}" y2="${base}" class="elo-base"/>
+      <polyline points="${pts}" class="elo-line"/>${dots}
+      <circle cx="${x(s.length - 1).toFixed(1)}" cy="${y(last.elo).toFixed(1)}" r="4" class="elo-dot now"/>
+    </svg>`;
+}
+
+function renderEloCard(t){
+  const E = computeElo();
+  const r = Math.round(E.R[t]), st = E.st[t], tier = eloTier(r);
+  const games = st.w + st.l;
+  const pct = games ? Math.round(100 * st.w / games) : 0;
+  const rivals = TRAINERS.filter(o => o !== t);
+  const h2hRows = rivals.map(o => {
+    const k = [t, o].sort().join('-'); const rec = E.h2h[k] || {};
+    const p = Math.round(100 * eloExpected(E.R[t], E.R[o]));
+    return `<div class="elo-h2h"><span class="n">vs ${NAMES[o]}</span><span class="rec">${rec[t] || 0} - ${rec[o] || 0}</span><span class="pr">${p}% de ganar</span></div>`;
+  }).join('');
+  const nextTier = ELO_TIERS.find(x => x.min > r);
+  const streakTxt = st.streak > 0 ? `🔥 ${st.streak}` : st.streak < 0 ? `🧊 ${-st.streak}` : '—';
+  const sign = v => (v >= 0 ? '+' : '') + Math.round(v);
+  return `
+    <div class="kpi wide brk elo-card">
+      <div class="kpi-label">⚡ Elo · combates + lockes</div>
+      <div class="elo-top">
+        <div class="elo-rating" style="--tier:${tier.color}">
+          <div class="elo-num">${r}</div>
+          <div class="elo-tier">${tier.icon} ${tier.name}</div>
+          ${nextTier ? `<div class="elo-next">${nextTier.min - r} para ${nextTier.name}</div>` : `<div class="elo-next">Rango máximo</div>`}
+        </div>
+        <div class="elo-chart">${eloSparkline(t)}<div class="elo-chart-legend"><i class="lk"></i> locke ganado/perdido &nbsp; · &nbsp; ${computeElo().series[t].length - 1} eventos</div></div>
+      </div>
+      <div class="elo-stats">
+        <div class="elo-stat"><b>${st.w} - ${st.l}</b><span>combates (${pct}%)</span></div>
+        <div class="elo-stat"><b>${st.lockes}</b><span>lockes ganados</span></div>
+        <div class="elo-stat"><b>${Math.round(st.peak)}</b><span>Elo máximo</span></div>
+        <div class="elo-stat"><b>${streakTxt}</b><span>racha (mejor: ${st.best})</span></div>
+        <div class="elo-stat"><b>${sign(st.fromCombats)} / ${sign(st.fromLockes)}</b><span>de combates / de lockes</span></div>
+      </div>
+      <div class="elo-h2h-wrap">${h2hRows}</div>
+      ${ELO_LEGACY_PROVISIONAL ? `<div class="elo-note">Historial de partidas anteriores provisional (repartido a partir de los marcadores totales) hasta cargar los combates reales.</div>` : ''}
+    </div>`;
+}
+
 // Frases sueltas que se cuelan al final de la narración de cualquier juego del
 // combate entre Iker y Alex (recordatorio del 6-3 de Ultra Sol y de las 3 Potencias).
 const ULTRASOL_CALLBACKS = [
@@ -7754,6 +7990,8 @@ async function finishDuel(){
     match1: { p1: match1.p1, p2: match1.p2, winner: match1Winner },
     final: bye ? { p1: match1Winner, p2: bye, winner: finalWinner } : null,
     champion: finalWinner,
+    match1Score: eloScoreOf(duelState.match1Games, match1.p1, match1.p2),
+    finalScore: bye ? eloScoreOf(duelState.finalGames, match1Winner, bye) : null,
     match1WinnerReward: '1 captura extra',
     match1LoserPrize,
     finalWinnerPrize,
