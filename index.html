@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#040b16">
 <title>Triolocke · Rubí Omega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Outfit:wght@400;500;600&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;800&display=swap');
 :root{
@@ -1968,6 +1970,224 @@ input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--sapphi
 .secret-btn{ background:transparent; border:1px dashed rgba(60,203,255,.35); color:var(--silver-dim); font-family:var(--f-ui); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; padding:5px 10px; border-radius:var(--r); cursor:pointer; transition:all .15s; }
 .secret-btn:hover{ color:#fff; border-color:var(--sapphire); }
 @media (max-width:560px){ .top-vs{ display:none; } }
+
+
+/* =====================================================================
+   SALÓN DE JUEGOS · CIUDAD MALVALONA — rework del casino
+   Mauville = ciudad eléctrica: neón amarillo/cian/magenta sobre violeta
+   oscuro, marquesinas de bombillas y máquinas de arcade. Solo se aplica
+   dentro del casino (body.casino-mode / #app.in-casino).
+   ===================================================================== */
+body.casino-mode{
+  --cz-bg:#08041a; --cz-panel:#120a2c; --cz-panel2:#1b0f42; --cz-edge:#4a2a9a;
+  --cz-yellow:#ffd23f; --cz-cyan:#27f2ff; --cz-pink:#ff3d9a; --cz-green:#39ff88; --cz-orange:#ff8a2b; --cz-red:#ff3b4a;
+  --cz-text:#efe9ff; --cz-dim:#9a8bd0;
+  --f-sign:'Bungee','Unbounded',sans-serif;
+  background:
+    radial-gradient(900px 520px at 12% -6%, rgba(255,61,154,.22), transparent 62%),
+    radial-gradient(900px 560px at 100% 100%, rgba(39,242,255,.16), transparent 62%),
+    linear-gradient(180deg,#0b0524 0%,#060216 100%);
+}
+body.casino-mode .stage::before{
+  background-image:
+    linear-gradient(rgba(255,61,154,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(39,242,255,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+}
+body.casino-mode .topbar{ border-bottom-color:rgba(255,61,154,.28); }
+body.casino-mode main{ max-width:1320px; }
+
+/* ---------------------------------------------------------- bombillas */
+.cz-bulbs-base, .cz-marquee-bulbs, .cz-cab-bulbs{ display:flex; gap:8px; justify-content:center; }
+.cz-marquee-bulbs i, .cz-cab-bulbs i{
+  width:9px; height:9px; border-radius:50%; background:var(--cz-yellow);
+  box-shadow:0 0 8px var(--cz-yellow),0 0 16px rgba(255,210,63,.6); animation:czBulb 1.2s ease-in-out infinite;
+}
+.cz-marquee-bulbs i:nth-child(3n+2), .cz-cab-bulbs i:nth-child(3n+2){ background:var(--cz-pink); box-shadow:0 0 8px var(--cz-pink),0 0 16px rgba(255,61,154,.6); }
+.cz-marquee-bulbs i:nth-child(3n), .cz-cab-bulbs i:nth-child(3n){ background:var(--cz-cyan); box-shadow:0 0 8px var(--cz-cyan),0 0 16px rgba(39,242,255,.6); }
+@keyframes czBulb{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.25; transform:scale(.8); } }
+
+/* ---------------------------------------------------------- HALL */
+.cz-hall{ position:relative; }
+.cz-marquee{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:18px; padding:22px 12px 8px; }
+.cz-marquee-title{ text-align:center; line-height:1; }
+.cz-marquee-title small{ display:block; font-family:var(--f-ui); font-size:12px; letter-spacing:8px; color:var(--cz-cyan); text-shadow:0 0 12px rgba(39,242,255,.8); margin-bottom:8px; }
+.cz-marquee-title b{ font-family:var(--f-sign); font-weight:400; font-size:clamp(28px,5vw,58px); color:var(--cz-yellow); letter-spacing:3px;
+  text-shadow:0 0 6px #fff4b0,0 0 18px var(--cz-yellow),0 0 42px rgba(255,138,43,.9),0 4px 0 #b06a00; animation:czNeon 3.4s infinite; }
+@keyframes czNeon{ 0%,18%,22%,25%,53%,57%,100%{ opacity:1; } 20%,24%,55%{ opacity:.55; } }
+@media (max-width:700px){ .cz-marquee{ grid-template-columns:1fr; } .cz-marquee-bulbs{ display:none; } }
+
+.cz-hero{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(280px,.8fr); gap:24px; align-items:end; margin:10px 0 34px; }
+@media (max-width:900px){ .cz-hero{ grid-template-columns:1fr; } }
+.cz-croupier{ position:relative; min-height:250px; display:flex; align-items:flex-end; justify-content:center; padding-top:70px;
+  border:1px solid var(--cz-edge); border-radius:14px; overflow:hidden;
+  background:radial-gradient(420px 260px at 50% 100%, rgba(255,61,154,.32), transparent 70%),
+             repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 2px, transparent 2px 46px), linear-gradient(180deg,#160a38,#0b0522); }
+.cz-croupier::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:46px; background:repeating-conic-gradient(#1c0f45 0 25%, #12082e 0 50%) 0 0/34px 34px; opacity:.9; }
+.cz-croupier-img{ position:relative; z-index:2; height:250px; width:auto; object-fit:contain; margin-bottom:6px; filter:drop-shadow(0 12px 26px rgba(0,0,0,.65)) drop-shadow(0 0 30px rgba(255,120,60,.45)); animation:czFloat 5s ease-in-out infinite; }
+@keyframes czFloat{ 50%{ transform:translateY(-8px); } }
+.cz-bubble{ position:absolute; top:16px; left:50%; transform:translateX(-50%); z-index:3; max-width:82%; text-align:center; font-family:var(--f-ui); font-weight:700; font-size:14px; }
+.cz-nameplate{ position:absolute; left:16px; bottom:14px; z-index:4; font-family:var(--f-sign); font-size:11px; letter-spacing:2px; color:#1a0f00; background:linear-gradient(#ffe26b,#ffb400); padding:5px 12px; border-radius:3px; box-shadow:0 0 16px rgba(255,210,63,.5); }
+.cz-desk{ padding:22px 22px 20px; border:1px solid var(--cz-edge); border-radius:14px; background:linear-gradient(160deg,var(--cz-panel2),var(--cz-panel)); box-shadow:0 0 0 1px rgba(255,210,63,.15),0 0 40px rgba(255,61,154,.12); }
+.cz-desk-label{ font-family:var(--f-ui); font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--cz-dim); margin-bottom:6px; }
+.cz-select{ width:100%; padding:11px 12px; font-family:var(--f-ui); font-size:15px; font-weight:700; color:var(--cz-text); background:#0a0522; border:1px solid var(--cz-edge); border-radius:6px; }
+.cz-balance{ font-family:var(--f-sign); font-size:40px; color:var(--cz-yellow); text-shadow:0 0 14px rgba(255,210,63,.6); display:flex; align-items:center; gap:10px; }
+.cz-balance span{ font-size:26px; filter:drop-shadow(0 0 8px rgba(255,61,154,.7)); }
+.cz-desk-note{ margin-top:12px; font-size:12px; line-height:1.5; color:var(--cz-dim); }
+
+.cz-zone{ margin-bottom:34px; }
+.cz-zone-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:16px; padding-bottom:10px; border-bottom:1px dashed rgba(255,61,154,.35); }
+.cz-zone-head b{ font-family:var(--f-sign); font-weight:400; font-size:22px; letter-spacing:2px; color:var(--cz-cyan); text-shadow:0 0 12px rgba(39,242,255,.6); text-transform:uppercase; }
+.cz-zone-head span{ font-family:var(--f-ui); font-size:12px; letter-spacing:2px; color:var(--cz-dim); text-transform:uppercase; }
+.cz-floor-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:22px; }
+
+/* cabina de arcade */
+.cz-cab{ --hue:var(--cz-yellow); position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; padding:12px 12px 16px; cursor:pointer;
+  border-radius:16px 16px 8px 8px; background:linear-gradient(180deg,#22124f 0%,#150a35 55%,#0e0625 100%);
+  border:2px solid color-mix(in srgb,var(--hue) 55%,#000); box-shadow:0 0 0 1px rgba(255,255,255,.05) inset,0 12px 28px rgba(0,0,0,.5),0 0 22px color-mix(in srgb,var(--hue) 22%,transparent);
+  transition:transform .18s,box-shadow .18s; }
+.cz-cab:hover{ transform:translateY(-8px) scale(1.02); box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 22px 40px rgba(0,0,0,.6),0 0 44px color-mix(in srgb,var(--hue) 55%,transparent); }
+.cz-cab:focus-visible{ outline:3px solid var(--hue); outline-offset:3px; }
+.hue-yellow{ --hue:var(--cz-yellow); } .hue-cyan{ --hue:var(--cz-cyan); } .hue-pink{ --hue:var(--cz-pink); }
+.hue-green{ --hue:var(--cz-green); } .hue-orange{ --hue:var(--cz-orange); } .hue-red{ --hue:var(--cz-red); }
+.cz-cab-sign{ width:100%; text-align:center; font-family:var(--f-sign); font-size:13px; letter-spacing:1.5px; text-transform:uppercase; padding:8px 6px; border-radius:6px; color:#0d0620;
+  background:var(--hue); box-shadow:0 0 18px color-mix(in srgb,var(--hue) 70%,transparent); text-shadow:none; }
+.cz-cab-screen{ position:relative; width:100%; aspect-ratio:4/3; display:grid; place-items:center; overflow:hidden; border-radius:8px;
+  background:radial-gradient(circle at 50% 40%, color-mix(in srgb,var(--hue) 35%,#0a0520) 0%, #06021a 75%); box-shadow:inset 0 0 26px rgba(0,0,0,.8),0 0 0 3px #0a0522,0 0 0 4px rgba(255,255,255,.12); }
+.cz-cab-icon{ font-size:58px; filter:drop-shadow(0 0 14px var(--hue)); transition:transform .25s; }
+.cz-cab:hover .cz-cab-icon{ transform:scale(1.18) rotate(-6deg); }
+.cz-scan{ position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 4px); pointer-events:none; animation:czScan 6s linear infinite; }
+@keyframes czScan{ to{ background-position:0 40px; } }
+.cz-cab-tag{ min-height:32px; text-align:center; font-family:var(--f-ui); font-size:12px; line-height:1.3; color:var(--cz-dim); }
+.cz-cab-bulbs i{ width:7px; height:7px; }
+.cz-cab-coin{ width:64%; height:22px; display:grid; place-items:center; border-radius:4px; background:#05010f; border:1px solid rgba(255,255,255,.14); }
+.cz-cab-coin span{ font-family:var(--f-ui); font-size:9px; letter-spacing:3px; color:var(--hue); animation:czBlink 1.4s steps(2,end) infinite; }
+@keyframes czBlink{ 50%{ opacity:.15; } }
+.cz-cab.is-life .cz-cab-icon{ animation:czBeat 1.1s ease-in-out infinite; }
+@keyframes czBeat{ 0%,100%{ transform:scale(1); } 15%{ transform:scale(1.22); } 30%{ transform:scale(1); } 45%{ transform:scale(1.14); } }
+.cz-foot{ text-align:center; font-family:var(--f-ui); font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--cz-dim); opacity:.7; margin-top:10px; }
+
+/* ---------------------------------------------------------- CABECERA DE JUEGO */
+.in-casino .cz-head{ display:grid; grid-template-columns:auto 1fr auto auto; gap:14px 20px; align-items:center; padding:12px 16px; margin-bottom:22px;
+  border:1px solid var(--cz-edge); border-radius:14px; background:linear-gradient(90deg,#1b0f42,#120a2c); box-shadow:0 0 0 1px rgba(255,210,63,.12),0 0 34px rgba(255,61,154,.12); }
+@media (max-width:900px){ .in-casino .cz-head{ grid-template-columns:1fr 1fr; } .in-casino .cz-head-title{ grid-column:1/-1; order:-1; } }
+.in-casino .cz-back{ padding:9px 14px; margin:0; font-family:var(--f-sign); font-size:12px; letter-spacing:2px; color:var(--cz-cyan); background:transparent; border:1px solid var(--cz-cyan); border-radius:6px; cursor:pointer; text-shadow:0 0 8px rgba(39,242,255,.7); }
+.in-casino .cz-back:hover{ background:rgba(39,242,255,.14); color:#fff; }
+.in-casino .cz-head-title{ font-family:var(--f-sign); font-size:clamp(20px,3vw,34px); letter-spacing:3px; color:var(--cz-yellow); text-shadow:0 0 6px #fff4b0,0 0 20px rgba(255,210,63,.8); }
+.in-casino .cz-head-player{ display:flex; align-items:center; gap:14px; }
+.in-casino .cz-head-player select{ padding:9px 10px; font-family:var(--f-ui); font-weight:700; color:var(--cz-text); background:#0a0522; border:1px solid var(--cz-edge); border-radius:6px; }
+.in-casino .casino-balance{ font-family:var(--f-sign); font-size:24px; color:var(--cz-yellow); text-shadow:0 0 12px rgba(255,210,63,.6); white-space:nowrap; }
+.in-casino .mascot{ display:flex; align-items:center; gap:10px; margin:0; position:relative; }
+.in-casino .mascot-img{ width:78px; height:78px; object-fit:contain; margin:-14px 0; filter:drop-shadow(0 6px 10px rgba(0,0,0,.6)) drop-shadow(0 0 14px rgba(255,120,60,.5)); }
+.in-casino .mascot-bubble{ position:static; max-width:230px; font-family:var(--f-ui); font-size:12px; line-height:1.3; }
+@media (max-width:900px){ .in-casino .mascot-bubble{ display:none; } }
+
+/* ---------------------------------------------------------- PIEZAS COMUNES */
+.in-casino .casino-mode-line{ text-align:left; margin:0 0 14px; font-family:var(--f-ui); font-size:14px; letter-spacing:.6px; color:var(--cz-dim); }
+.in-casino .bet-panel{ background:linear-gradient(170deg,var(--cz-panel2),var(--cz-panel)); border:1px solid var(--cz-edge); border-radius:14px; padding:18px 18px 20px; max-width:none;
+  box-shadow:0 0 0 1px rgba(255,210,63,.14),0 0 32px rgba(255,61,154,.14),0 16px 34px rgba(0,0,0,.5); }
+.in-casino .bet-panel-header{ font-family:var(--f-sign); font-size:14px; letter-spacing:1.5px; color:var(--cz-yellow); text-shadow:0 0 10px rgba(255,210,63,.5); margin-bottom:14px; }
+.in-casino .chip-selector{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.in-casino .chip-denom{ position:relative; width:52px; height:52px; border-radius:50%; display:grid; place-items:center; cursor:pointer; font-family:var(--f-sign); font-size:14px; color:#fff;
+  background:radial-gradient(circle, #23124f 45%, #4a2a9a 46% 52%, #23124f 53%); border:3px dashed rgba(255,255,255,.55); box-shadow:0 5px 0 #090320,0 0 0 2px #090320; transition:transform .12s; }
+.in-casino .chip-denom:hover{ transform:translateY(-3px); }
+.in-casino .chip-denom.active{ background:radial-gradient(circle,#ffe26b 45%,#ffb400 46% 52%,#ffe26b 53%); color:#1a0f00; border-color:#fff; box-shadow:0 5px 0 #a06a00,0 0 20px rgba(255,210,63,.7); }
+.in-casino button.primary{ background:linear-gradient(180deg,#ffe26b,#ffb400); color:#1a0f00; border:2px solid #fff4b0; border-radius:8px; font-family:var(--f-sign); font-size:13px; letter-spacing:1.5px;
+  box-shadow:0 5px 0 #a06a00,0 0 26px rgba(255,210,63,.4); text-shadow:none; }
+.in-casino button.primary:hover{ filter:brightness(1.1); background:linear-gradient(180deg,#ffe26b,#ffb400); border-color:#fff; box-shadow:0 5px 0 #a06a00,0 0 36px rgba(255,210,63,.7); }
+.in-casino button.primary:active{ transform:translateY(4px); box-shadow:0 1px 0 #a06a00; }
+.in-casino button.primary:disabled{ filter:grayscale(.9) brightness(.55); box-shadow:0 5px 0 #2a2140; }
+.in-casino button.ghost{ color:var(--cz-cyan); border-color:rgba(39,242,255,.5); background:rgba(39,242,255,.06); }
+.in-casino button.ghost:hover{ background:rgba(39,242,255,.16); color:#fff; box-shadow:0 0 16px rgba(39,242,255,.35); }
+.in-casino .chip-add-btn,.in-casino .chip-clear-btn{ border-radius:6px; font-family:var(--f-ui); font-weight:700; letter-spacing:1px; }
+.in-casino .result-banner{ margin:16px 0 0; padding:14px 18px; border-radius:10px; text-align:center; font-family:var(--f-sign); font-size:16px; letter-spacing:1px; }
+.in-casino .result-banner.win{ color:#052a13; background:linear-gradient(180deg,#8dffbb,#2cd970); box-shadow:0 0 34px rgba(57,255,136,.55); }
+.in-casino .result-banner.lose{ color:#ffd6de; background:linear-gradient(180deg,#5a1230,#33081c); border:1px solid #ff3d9a; box-shadow:0 0 24px rgba(255,61,154,.35); }
+
+/* juegos con panel de apuestas: partida a la izquierda, mesa de control a la derecha */
+.in-casino #casino-content:has(> .bet-panel),
+.in-casino .roulette-wrap, .in-casino .card-table, .in-casino .loteria-wrap{
+  display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:26px; row-gap:16px; align-items:start; max-width:none; }
+.in-casino #casino-content:has(> .bet-panel) > *, .in-casino .roulette-wrap > *, .in-casino .card-table > *, .in-casino .loteria-wrap > *{ grid-column:1; min-width:0; }
+.in-casino #casino-content:has(> .bet-panel) > .bet-panel, .in-casino .roulette-wrap > .bet-panel, .in-casino .card-table > .bet-panel, .in-casino .loteria-wrap > .bet-panel{
+  grid-column:2; grid-row:1 / span 12; position:sticky; top:84px; align-self:start; margin:0; }
+@media (max-width:1000px){
+  .in-casino #casino-content:has(> .bet-panel), .in-casino .roulette-wrap, .in-casino .card-table, .in-casino .loteria-wrap{ grid-template-columns:1fr; }
+  .in-casino #casino-content:has(> .bet-panel) > .bet-panel, .in-casino .roulette-wrap > .bet-panel, .in-casino .card-table > .bet-panel, .in-casino .loteria-wrap > .bet-panel{ grid-column:1; grid-row:auto; position:static; }
+}
+
+/* ---------------------------------------------------------- MESAS (blackjack / nueve) */
+.in-casino .card-table{ padding:26px 26px 26px; border-radius:200px 200px 26px 26px / 90px 90px 26px 26px; border:6px solid #2a1466;
+  background:radial-gradient(ellipse at 50% 12%, #0e6a5e 0%, #08443f 55%, #042126 100%);
+  box-shadow:inset 0 0 70px rgba(0,0,0,.65),0 0 0 2px var(--cz-yellow),0 0 46px rgba(255,210,63,.25),0 24px 50px rgba(0,0,0,.55); }
+@media (max-width:1000px){ .in-casino .card-table{ border-radius:40px 40px 22px 22px; } }
+.in-casino .card-row-block{ background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12); border-radius:12px; }
+.in-casino .card-row-label{ font-family:var(--f-sign); letter-spacing:2px; color:var(--cz-yellow); }
+.in-casino .table-hint{ text-align:center; font-family:var(--f-ui); color:#bff3e8; letter-spacing:1px; }
+
+/* ---------------------------------------------------------- RULETA / LOTERÍA */
+.in-casino .roulette-stage{ position:relative; display:grid; justify-items:center; padding:24px 10px 30px; border-radius:16px; border:1px solid var(--cz-edge);
+  background:radial-gradient(circle at 50% 40%, rgba(255,61,154,.22), transparent 62%), linear-gradient(160deg,#170b3a,#0b0522); }
+.in-casino .roulette-table{ max-width:100%; }
+.in-casino .loteria-pot{ font-family:var(--f-sign); color:var(--cz-yellow); text-shadow:0 0 16px rgba(255,210,63,.6); }
+.in-casino .wheel-wrap{ filter:drop-shadow(0 0 30px rgba(255,61,154,.35)); }
+
+/* ---------------------------------------------------------- MINES / CRASH / GRIETA / PLINKO */
+.in-casino .mines-grid{ padding:16px; border-radius:16px; background:linear-gradient(160deg,#170b3a,#0b0522); border:1px solid var(--cz-edge); box-shadow:inset 0 0 40px rgba(0,0,0,.6); }
+.in-casino .mines-cell{ border-radius:10px; border:2px solid #3a2380; background:linear-gradient(180deg,#2a1770,#170b3a); box-shadow:0 4px 0 #0a0522; transition:transform .1s,box-shadow .1s,border-color .1s; }
+.in-casino .mines-cell:hover:not(:disabled){ transform:translateY(-2px); border-color:var(--cz-cyan); box-shadow:0 6px 0 #0a0522,0 0 16px rgba(39,242,255,.5); }
+.in-casino .crash-display{ min-height:230px; display:grid; place-items:center; border-radius:16px; border:1px solid var(--cz-edge); background:
+  radial-gradient(circle at 50% 100%, rgba(255,61,154,.25), transparent 65%), repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 36px), linear-gradient(180deg,#120a2c,#08041a); }
+.in-casino .crash-multiplier{ font-family:var(--f-sign); font-size:clamp(54px,9vw,104px); color:var(--cz-green); text-shadow:0 0 22px rgba(57,255,136,.8); }
+.in-casino .crash-display.crashed .crash-multiplier{ color:var(--cz-red); text-shadow:0 0 26px rgba(255,59,74,.9); }
+.in-casino .grieta-intro{ border-radius:14px; }
+.in-casino .plinko-svg{ border-color:var(--cz-edge); background:radial-gradient(ellipse at 50% 0%, rgba(255,61,154,.16), transparent 65%), linear-gradient(180deg,#140a34,#070320); }
+.in-casino .plinko-peg{ fill:#ffd6f0; }
+.in-casino .plinko-hint{ color:var(--cz-dim); }
+
+/* ---------------------------------------------------------- TRAGAPERRAS */
+.in-casino .machine-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:22px; }
+.in-casino .machine-card{ position:relative; border-radius:16px 16px 8px 8px; border:2px solid #4a2a9a; background:linear-gradient(180deg,#22124f,#12082e); box-shadow:0 12px 28px rgba(0,0,0,.5); transition:transform .18s,box-shadow .18s; }
+.in-casino .machine-card:hover{ transform:translateY(-8px); border-color:var(--cz-yellow); box-shadow:0 22px 40px rgba(0,0,0,.6),0 0 40px rgba(255,210,63,.35); }
+.in-casino .machine-name{ font-family:var(--f-sign); letter-spacing:1px; color:var(--cz-yellow); text-shadow:0 0 10px rgba(255,210,63,.5); }
+.in-casino .slot-cabinet{ border-radius:18px; border:3px solid var(--cz-yellow); background:linear-gradient(180deg,#22124f,#0e0625); box-shadow:0 0 0 6px #1a0f45,0 0 0 8px rgba(255,61,154,.6),0 0 50px rgba(255,210,63,.3),0 26px 50px rgba(0,0,0,.6); }
+.in-casino .slot-title{ font-family:var(--f-sign); letter-spacing:2px; color:var(--cz-yellow); text-shadow:0 0 8px #fff4b0,0 0 22px rgba(255,210,63,.8); }
+.in-casino .slot-sub{ color:var(--cz-dim); }
+.in-casino .slot-screen{ border-radius:12px; box-shadow:inset 0 0 40px rgba(0,0,0,.85),0 0 0 3px #0a0522,0 0 0 5px rgba(39,242,255,.55); }
+.in-casino .slot-mult-btn{ font-family:var(--f-ui); font-weight:700; border-radius:6px; }
+.in-casino .slot-paytable{ border-radius:10px; }
+.in-casino .egg-wheel-name{ font-family:var(--f-sign); color:var(--cz-yellow); }
+
+/* --- retoques tras la primera revisión --- */
+.cz-marquee-title b{ white-space:nowrap; font-size:clamp(26px,4vw,52px); }
+.cz-zones{ display:grid; grid-template-columns:1fr 1fr; gap:34px 34px; }
+.cz-zones .zone-maquinas{ grid-column:1/-1; }
+.cz-zones .zone-mesas .cz-floor-grid, .cz-zones .zone-extras .cz-floor-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.cz-zones .zone-mesas .cz-cab-icon, .cz-zones .zone-extras .cz-cab-icon{ font-size:46px; }
+.cz-zones .zone-mesas .cz-cab-sign, .cz-zones .zone-extras .cz-cab-sign{ font-size:11px; }
+@media (max-width:1100px){ .cz-zones{ grid-template-columns:1fr; } .cz-zones .zone-mesas .cz-floor-grid, .cz-zones .zone-extras .cz-floor-grid{ grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); } }
+.in-casino .bet-panel{ clip-path:none; }
+.in-casino .roulette-wrap{ grid-template-columns:minmax(0,1fr) 430px; }
+.in-casino .roulette-table{ max-width:none; }
+.in-casino .roulette-stage{ min-height:520px; align-content:center; }
+.in-casino .roulette-wheel-outer{ zoom:1.55; }
+@media (max-width:1000px){ .in-casino .roulette-wrap{ grid-template-columns:1fr; } .in-casino .roulette-wheel-outer{ zoom:1.1; } }
+
+/* --- segunda pasada --- */
+.in-casino .plinko-wrap{ width:100%; max-width:680px; }
+.in-casino .crash-display.idle .crash-multiplier{ color:var(--cz-dim); text-shadow:none; opacity:.55; }
+.in-casino .crash-idle-label{ font-family:var(--f-ui); font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--cz-cyan); margin-top:-8px; }
+.in-casino .crash-display{ align-content:center; }
+.in-casino .mines-grid.idle{ opacity:.55; pointer-events:none; }
+.in-casino .mines-count-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.in-casino .mines-count-label{ font-family:var(--f-ui); letter-spacing:2px; text-transform:uppercase; color:var(--cz-dim); font-size:12px; }
+.in-casino .machine-card{ padding:28px 18px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.in-casino .machine-emoji{ font-size:56px; filter:drop-shadow(0 0 16px var(--cz-yellow)); }
+.in-casino #casino-content > .slot-title, .in-casino #casino-content > .slot-sub, .in-casino #casino-content > .egg-wheel-display-wrap,
+.in-casino #casino-content > .egg-wheel-name, .in-casino #casino-content > .bj-action-row{ text-align:center; justify-self:center; }
+.in-casino .slot-cabinet{ margin:0 auto; }
+.in-casino .mines-grid{ width:100%; max-width:560px; margin:0 auto; }
+.in-casino .mines-status-row{ display:flex; gap:22px; flex-wrap:wrap; justify-content:center; font-family:var(--f-ui); color:var(--cz-text); margin:14px 0; }
 
 </style>
 </head>
@@ -3981,6 +4201,8 @@ function render(){
   _allMonsCache = {};
   if(duelCountdownInterval){ clearInterval(duelCountdownInterval); duelCountdownInterval = null; }
   const app = document.getElementById('app');
+  document.body.classList.toggle('casino-mode', view === 'casino');
+  app.classList.toggle('in-casino', view === 'casino');
   if(!loaded){ app.innerHTML = '<div class="empty-state">Cargando…</div>'; return; }
 
   if(view === 'home') return renderHome(app);
@@ -4662,128 +4884,74 @@ const CHARIZARD_IMG = {
 };
 
 
-function renderCasinoFloor(){
+/* ==================== SALÓN DE JUEGOS · CIUDAD MALVALONA (rework del casino) ==================== */
+const CZ_GAMES = [
+  { zone:'maquinas', id:'slots',    icon:'🎰', name:'Tragaperras',  tag:'4 máquinas · legendarios',        hue:'yellow', go:"openCasinoZone('slots')" },
+  { zone:'maquinas', id:'plinko',   icon:'🔴', name:'Plinko',       tag:'Suelta la ficha y a rezar',        hue:'cyan',   go:"openCasinoZone('plinko')" },
+  { zone:'maquinas', id:'crash',    icon:'🚀', name:'Crash',        tag:'Sube... hasta que explota',        hue:'pink',   go:"openCasinoZone('crash')" },
+  { zone:'maquinas', id:'grieta',   icon:'⛏️', name:'La Grieta',    tag:'Baja niveles · retírate a tiempo', hue:'orange', go:"openCasinoZone('grieta')" },
+  { zone:'maquinas', id:'mines',    icon:'💣', name:'Mines',        tag:'Casillas seguras · o no',          hue:'green',  go:"openCasinoZone('mines')" },
+  { zone:'mesas',    id:'roulette', icon:'🎡', name:'Ruleta',       tag:'Números y colores',                hue:'pink',   go:"openCasinoZone('roulette')" },
+  { zone:'mesas',    id:'blackjack',icon:'🂡', name:'Blackjack',    tag:'21 contra el crupier',             hue:'green',  go:"openCasinoZone('blackjack')" },
+  { zone:'mesas',    id:'nueve',    icon:'9️⃣', name:'El Nueve',     tag:'Jugador · Empate · Crupier',       hue:'cyan',   go:"openCasinoZone('nueve')" },
+  { zone:'extras',   id:'loteria',  icon:'🎫', name:'Lotería',      tag:'Bote acumulado',                   hue:'yellow', go:"openCasinoZone('loteria')" },
+  { zone:'extras',   id:'eggwheel', icon:'🥚', name:'Sorteo Pokémon', tag:'Los 721, al azar',               hue:'orange', go:"openCasinoZone('eggwheel')" },
+  { zone:'extras',   id:'life',     icon:'❤️', name:'Botón de la vida', tag:'Acceso restringido · con contraseña', hue:'red', go:"openLifeButtonModal()" },
+];
+const CZ_ZONES = {
+  maquinas: { title: 'Máquinas',  sub: 'Arcade · pulsa y a ver qué sale' },
+  mesas:    { title: 'Mesas',     sub: 'Con crupier de plumas' },
+  extras:   { title: 'Sorteos y extras', sub: 'El bote, los huevos y el botón prohibido' },
+};
+function czBulbs(n){ return Array.from({length:n}).map((_,i)=>`<i style="animation-delay:${(i*0.18).toFixed(2)}s"></i>`).join(''); }
+function czCab(g){
   return `
-    <div class="casino-hall">
-      <div class="hall-mascot">
-        <div class="hall-mascot-bubble comic-bubble">${casinoGreetingLine}</div>
-        <img class="hall-mascot-img" src="${CHARIZARD_IMG.hall}" alt="Blaziken crupier">
-      </div>
-      <div class="hall-title">✨ Bienvenido al Casino ✨</div>
-      <div class="hall-grid">
-        <div class="hall-card g-slots" onclick="openCasinoZone('slots')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🎰</div>
-              <div class="hall-card-title">Tragaperras</div>
-              <div class="hall-card-sub">4 máquinas · legendarios</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
+    <div class="cz-cab hue-${g.hue}${g.id==='life'?' is-life':''}" onclick="${g.go}" role="button" tabindex="0">
+      <div class="cz-cab-sign">${g.name}</div>
+      <div class="cz-cab-screen"><span class="cz-cab-icon">${g.icon}</span><i class="cz-scan"></i></div>
+      <div class="cz-cab-tag">${g.tag}</div>
+      <div class="cz-cab-bulbs">${czBulbs(7)}</div>
+      <div class="cz-cab-coin"><span>INSERT COIN</span></div>
+    </div>`;
+}
+function renderCasinoFloor(){
+  const bal = tickets[casinoPlayer]||0;
+  const zones = Object.keys(CZ_ZONES).map(z=>{
+    const games = CZ_GAMES.filter(g=>g.zone===z);
+    return `
+      <section class="cz-zone zone-${z}">
+        <div class="cz-zone-head"><b>${CZ_ZONES[z].title}</b><span>${CZ_ZONES[z].sub}</span></div>
+        <div class="cz-floor-grid">${games.map(czCab).join('')}</div>
+      </section>`;
+  }).join('');
+  return `
+    <div class="cz-hall">
+      <header class="cz-marquee">
+        <div class="cz-marquee-bulbs">${czBulbs(18)}</div>
+        <div class="cz-marquee-title"><small>CIUDAD MALVALONA</small><b>SALÓN DE JUEGOS</b></div>
+        <div class="cz-marquee-bulbs">${czBulbs(18)}</div>
+      </header>
+
+      <div class="cz-hero">
+        <div class="cz-croupier">
+          <div class="cz-bubble comic-bubble">${casinoGreetingLine}</div>
+          <img class="cz-croupier-img" src="${CHARIZARD_IMG.hall}" alt="Blaziken crupier">
+          <div class="cz-nameplate">BLAZIKEN · CRUPIER</div>
         </div>
-        <div class="hall-card g-roulette" onclick="openCasinoZone('roulette')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🎡</div>
-              <div class="hall-card-title">Ruleta</div>
-              <div class="hall-card-sub">Números y colores</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-loteria" onclick="openCasinoZone('loteria')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🎫</div>
-              <div class="hall-card-title">Lotería</div>
-              <div class="hall-card-sub">Bote acumulado</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-blackjack" onclick="openCasinoZone('blackjack')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🂡</div>
-              <div class="hall-card-title">Blackjack</div>
-              <div class="hall-card-sub">21 contra el crupier</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-nueve" onclick="openCasinoZone('nueve')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">9️⃣</div>
-              <div class="hall-card-title">El Nueve</div>
-              <div class="hall-card-sub">Jugador · Empate · Crupier</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-eggwheel" onclick="openCasinoZone('eggwheel')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🥚</div>
-              <div class="hall-card-title">Sorteo Pokémon</div>
-              <div class="hall-card-sub">Los 721, al azar</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-mines" onclick="openCasinoZone('mines')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">💣</div>
-              <div class="hall-card-title">Mines</div>
-              <div class="hall-card-sub">Casillas seguras · retírate cuando quieras</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-crash" onclick="openCasinoZone('crash')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🚀</div>
-              <div class="hall-card-title">Crash</div>
-              <div class="hall-card-sub">El multiplicador sube... hasta que explota</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-grieta" onclick="openCasinoZone('grieta')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">⛏️</div>
-              <div class="hall-card-title">La Grieta</div>
-              <div class="hall-card-sub">Baja niveles a pulso · retírate antes del derrumbe</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-plinko" onclick="openCasinoZone('plinko')">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">🔴</div>
-              <div class="hall-card-title">Plinko</div>
-              <div class="hall-card-sub">Suelta la ficha y que caiga donde quiera</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
-        </div>
-        <div class="hall-card g-lifebutton" onclick="openLifeButtonModal()">
-          <div class="hall-card-border">
-            <div class="hall-card-inner">
-              <div class="hall-card-icon">❤️</div>
-              <div class="hall-card-title">El botón de la vida</div>
-              <div class="hall-card-sub">Acceso restringido · con contraseña</div>
-              <div class="hall-card-bulbs">${Array.from({length:5}).map(()=>`<div class="slot-bulb"></div>`).join('')}</div>
-            </div>
-          </div>
+        <div class="cz-desk">
+          <div class="cz-desk-label">Jugador en sala</div>
+          <select class="cz-select" onchange="setCasinoPlayer(this.value)">
+            ${TRAINERS.map(t=>`<option value="${t}" ${t===casinoPlayer?'selected':''}>${NAMES[t]}</option>`).join('')}
+          </select>
+          <div class="cz-desk-label" style="margin-top:14px;">Saldo</div>
+          <div class="cz-balance"><span>🎟️</span>${bal}</div>
+          <div class="cz-desk-note">Los tickets se ganan combatiendo, con el bonus diario… y perdiéndolos aquí.</div>
         </div>
       </div>
+
+      <div class="cz-zones">${zones}</div>
+      <div class="cz-foot">Juega con cabeza · Aquí solo se pierden tickets · Wattson no se hace responsable</div>
     </div>
-    <div class="casino-floor-hint">Elige una zona para entrar</div>
   `;
 }
 
@@ -4844,10 +5012,10 @@ function openCasinoZone(tab){
   else if(tab==='blackjack'){ casinoModeLine = pickLine(BLACKJACK_LINES); bjState = { phase:'bet', playerCards:[], dealerCards:[], hideDealer:true, resultText:'', resultClass:'' }; }
   else if(tab==='nueve'){ casinoModeLine = pickLine(NINE_LINES); nineState = { phase:'bet', playerCards:[], bankerCards:[], choice:null, resultText:'', resultClass:'' }; }
   else if(tab==='eggwheel'){ eggWheelResult = null; }
-  else if(tab==='mines'){ minesState = { phase:'bet', grid:[], revealed:[], resultText:'', resultClass:'' }; }
+  else if(tab==='mines'){ casinoModeLine = pickLine(MINES_LINES); minesState = { phase:'bet', grid:[], revealed:[], resultText:'', resultClass:'' }; }
   else if(tab==='grieta'){ casinoModeLine = pickLine(GRIETA_LINES); grietaState = { phase:'bet', levelIndex:0, multiplier:1, resultText:'', resultClass:'' }; }
-  else if(tab==='crash'){ crashState = { phase:'bet', multiplier:1.00, crashPoint:1.00, cashedOutAt:null, resultText:'', resultClass:'' }; if(crashInterval){ clearInterval(crashInterval); crashInterval=null; } }
-  else if(tab==='plinko'){ if(!plinkoAnim){ plinkoDropping = false; plinkoLastResult = null; } }
+  else if(tab==='crash'){ casinoModeLine = pickLine(CRASH_LINES); crashState = { phase:'bet', multiplier:1.00, crashPoint:1.00, cashedOutAt:null, resultText:'', resultClass:'' }; if(crashInterval){ clearInterval(crashInterval); crashInterval=null; } }
+  else if(tab==='plinko'){ casinoModeLine = pickLine(PLINKO_LINES); if(!plinkoAnim){ plinkoDropping = false; plinkoLastResult = null; } }
   render();
 }
 
@@ -4877,6 +5045,7 @@ function mascotContext(){
   if(casinoTab==='nueve')     return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
   if(casinoTab==='eggwheel')  return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
   if(casinoTab==='grieta')    return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
+  if(casinoTab==='mines' || casinoTab==='crash' || casinoTab==='plinko') return { img: CHARIZARD_IMG.roulette, line: casinoModeLine };
   return null;
 }
 
@@ -4891,21 +5060,27 @@ function renderMascot(){
   `;
 }
 
+const MINES_LINES = ['Cada casilla segura suma. Cada mina resta... todo.', 'Cavar es fácil. Parar a tiempo, no tanto.', 'Las minas no avisan, pero yo sí: retírate.', 'Tres minas o doce: tú decides cuánto quieres sufrir.'];
+const CRASH_LINES = ['Sube, sube... y BOOM. O te retiras a tiempo.', 'El cohete no tiene frenos. Tú sí.', 'Los valientes cobran. Los listos, también.', 'Cada décima que esperas es una décima que puedes perder.'];
+const PLINKO_LINES = ['Suelta la ficha y confía en las matemáticas... o en la suerte.', 'Cada clavo es un 50/50. Diez veces seguidas.', 'La ficha no tiene memoria. Tú, espero que sí.', 'Las casillas de los lados pagan de lujo. Las del medio, de pena.'];
+const CZ_TITLES = { slots:'TRAGAPERRAS', roulette:'RULETA', blackjack:'BLACKJACK', nueve:'EL NUEVE', mines:'MINES', crash:'CRASH',
+  grieta:'LA GRIETA', plinko:'PLINKO', loteria:'LOTERÍA', eggwheel:'SORTEO POKÉMON' };
+
 function renderCasino(app){
   if(casinoFloor){
     app.innerHTML = renderCasinoFloor();
   } else {
     app.innerHTML = `
-      <button class="back-btn" onclick="backToCasinoFloor()">← volver al casino</button>
-      ${renderMascot()}
-      <div class="casino-topbar">
-        <div>
-          <label style="font-size:11px;color:var(--silver-dim);letter-spacing:1px;display:block;margin-bottom:4px;">¿Quién juega?</label>
+      <div class="cz-head">
+        <button class="back-btn cz-back" onclick="backToCasinoFloor()">◀ SALÓN</button>
+        <div class="cz-head-title">${CZ_TITLES[casinoTab] || 'CASINO'}</div>
+        <div class="cz-head-player casino-topbar">
           <select id="casino-player-select" onchange="setCasinoPlayer(this.value)">
             ${TRAINERS.map(t=>`<option value="${t}" ${t===casinoPlayer?'selected':''}>${NAMES[t]}</option>`).join('')}
           </select>
+          <div class="casino-balance">🎟️ ${tickets[casinoPlayer]||0}</div>
         </div>
-        <div class="casino-balance">🎟️ ${tickets[casinoPlayer]||0}</div>
+        ${renderMascot()}
       </div>
 
       <div id="casino-content">
@@ -5941,6 +6116,7 @@ function renderMinesTab(){
   if(minesState.phase === 'bet'){
     return `
       <div class="casino-mode-line">${casinoModeLine}</div>
+      <div class="mines-grid idle">${Array.from({length:25}).map(()=>'<div class="mines-cell hidden"></div>').join('')}</div>
       <div class="mines-count-row">
         <div class="mines-count-label">Nº de minas:</div>
         ${[3,5,8,12].map(n=>`<div class="chip-denom ${n===minesCount?'active':''}" onclick="setMinesCount(${n})"><span>${n}</span></div>`).join('')}
@@ -6058,6 +6234,7 @@ function renderCrashTab(){
   if(crashState.phase === 'bet'){
     return `
       <div class="casino-mode-line">${casinoModeLine}</div>
+      <div class="crash-display idle"><div class="crash-multiplier">x1.00</div><div class="crash-idle-label">Fija tu apuesta y despega</div></div>
       <div class="bet-panel" style="max-width:420px;">
         <div class="bet-panel-header">Fichas de ${NAMES[casinoPlayer]} · 🎟️ ${balance}</div>
         <div class="chip-selector">
