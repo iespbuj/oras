@@ -7347,30 +7347,62 @@ function getUltraSolRecord(a, b){
    El historial se recalcula entero cada vez (duelHistory de esta partida +
    LEGACY_COMBATS y LOCKE_RESULTS de las partidas anteriores), no hay nada que
    guardar en el backend. ============================================================== */
-const ELO_START = 1000, ELO_K_COMBAT = 24, ELO_K_LOCKE = 32, ELO_MARGIN_20 = 1.2;
+// K-factors subidos respecto al original (24/32): con tan pocas partidas
+// jugadas, un Elo "de ajedrez" apenas se mueve — así cada combate y cada
+// locke pesan de verdad y los tiers (950-1350) se recorren en pocas partidas.
+const ELO_START = 1000, ELO_K_COMBAT = 40, ELO_K_LOCKE = 80, ELO_MARGIN_20 = 1.3;
 
 // Orden cronológico de las partidas anteriores a Rubí Omega.
 const ELO_LEGACY_GAMES = ['Pokémon SoulSilver', 'Pokémon X', 'Pokémon Ultra Sol'];
 
 // Quién ganó el LOCKE de cada partida anterior (null = todavía sin dato, no puntúa).
+// Iker ganó tanto Pokémon X como Ultra Sol; de SoulSilver no hay ganador registrado.
 const LOCKE_RESULTS = [
   { game: 'Pokémon SoulSilver',  players: ['iker','alex','joel'], winner: null },
-  { game: 'Pokémon X',           players: ['iker','alex','joel'], winner: null },
+  { game: 'Pokémon X',           players: ['iker','alex','joel'], winner: 'iker' },
   { game: 'Pokémon Ultra Sol',   players: ['iker','alex'],        winner: 'iker' },
 ];
 
 // Combates de las partidas anteriores, en orden cronológico:
 //   { game, winner, loser, score:'2-1' (opcional) }
-// PROVISIONAL: de momento se reconstruyen a partir de los marcadores totales que ya
-// estaban en la web (SoulSilver, X y Ultra Sol), repartiendo las victorias de forma
-// uniforme. Cuando se tenga la lista real, se sustituye este array y se pone
-// ELO_LEGACY_PROVISIONAL = false.
-const ELO_LEGACY_PROVISIONAL = true;
+// SoulSilver sigue PROVISIONAL (repartido a partir del marcador total, no hay
+// registro combate a combate de esa partida). Pokémon X y Ultra Sol son ya el
+// historial REAL, sacado combate a combate de los duelHistory de esas partidas.
+const ELO_LEGACY_PROVISIONAL = true; // solo queda provisional lo de SoulSilver
+
+const LEGACY_COMBATS_REAL = [
+  // ---- Pokémon Ultra Sol (Joel jugó los 4 primeros combates y luego se largó) ----
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'alex' }, // Combate nº1, match1
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'joel' }, // Combate nº1, final
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'alex' }, // combate 2, match1
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'joel' }, // combate 2, final
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'joel' }, // combate 27-ago, match1
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'alex' }, // combate 27-ago, final
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'alex' }, // combate semana 4, match1
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'joel' }, // combate semana 4, final
+  { game: 'Pokémon Ultra Sol', winner: 'alex', loser: 'iker' }, // combate 5, match1 (arranca la racha de Alex)
+  { game: 'Pokémon Ultra Sol', winner: 'alex', loser: 'iker' }, // combate 6, match1
+  { game: 'Pokémon Ultra Sol', winner: 'alex', loser: 'iker' }, // combate 7, match1 (3 seguidas de Alex)
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'alex' }, // combate semana 7, match1
+  { game: 'Pokémon Ultra Sol', winner: 'iker', loser: 'alex' }, // último combate, match1
+  // ---- Pokémon X ----
+  { game: 'Pokémon X', winner: 'alex', loser: 'joel' }, // combate, match1
+  { game: 'Pokémon X', winner: 'iker', loser: 'alex' }, // combate, final
+  { game: 'Pokémon X', winner: 'alex', loser: 'joel' }, // combate 2, match1
+  { game: 'Pokémon X', winner: 'alex', loser: 'iker' }, // combate 2, final
+  { game: 'Pokémon X', winner: 'iker', loser: 'alex' }, // combate 3, match1
+  { game: 'Pokémon X', winner: 'iker', loser: 'joel' }, // combate 3, final
+  { game: 'Pokémon X', winner: 'iker', loser: 'alex' }, // combate 4, match1
+  { game: 'Pokémon X', winner: 'iker', loser: 'joel' }, // combate 4, final
+  { game: 'Pokémon X', winner: 'iker', loser: 'joel' }, // combate 5, match1
+  { game: 'Pokémon X', winner: 'iker', loser: 'alex' }, // combate 5, final (3 seguidas de Iker vs Alex)
+];
+
+// SoulSilver: no tenemos el registro real, se sigue repartiendo a partir del
+// marcador total que ya había en la web.
 function eloBuildLegacyFromTotals(){
   const sources = [
     ['Pokémon SoulSilver', SOULSILVER_HISTORY],
-    ['Pokémon X', POKEMON_X_HISTORY],
-    ['Pokémon Ultra Sol', ULTRASOL_HISTORY],
   ];
   const out = [];
   sources.forEach(([game, table]) => {
@@ -7390,7 +7422,7 @@ function eloBuildLegacyFromTotals(){
   });
   return out;
 }
-const LEGACY_COMBATS = eloBuildLegacyFromTotals();
+const LEGACY_COMBATS = [...eloBuildLegacyFromTotals(), ...LEGACY_COMBATS_REAL];
 
 const ELO_TIERS = [
   { min: 0,    name: 'Novato',            icon: '🌱', color: '#9ed8a8' },
@@ -7418,7 +7450,7 @@ function computeElo(){
   TRAINERS.forEach(t => {
     R[t] = ELO_START;
     series[t] = [{ elo: ELO_START, label: 'Inicio', type: 'start' }];
-    st[t] = { w: 0, l: 0, streak: 0, best: 0, peak: ELO_START, lockes: 0, fromCombats: 0, fromLockes: 0, curW: 0, curL: 0 };
+    st[t] = { w: 0, l: 0, streak: 0, best: 0, streakVs: {}, peak: ELO_START, lockes: 0, fromCombats: 0, fromLockes: 0, curW: 0, curL: 0 };
   });
   const h2h = {}; // 'a-b' (ordenado) -> { a: n, b: n }
 
@@ -7431,7 +7463,11 @@ function computeElo(){
     st[w].w++; st[l].l++;
     st[w].streak = st[w].streak > 0 ? st[w].streak + 1 : 1;
     st[l].streak = st[l].streak < 0 ? st[l].streak - 1 : -1;
-    st[w].best = Math.max(st[w].best, st[w].streak);
+    // "mejor racha" = seguidas contra EL MISMO rival (no vale encadenar victorias
+    // contra gente distinta, ni entre partidas distintas, como pasaba antes).
+    st[w].streakVs[l] = (st[w].streakVs[l] || 0) + 1;
+    st[l].streakVs[w] = 0;
+    st[w].best = Math.max(st[w].best, st[w].streakVs[l]);
     if(tag === 'run'){ st[w].curW++; st[l].curL++; }
     const k = [w, l].sort().join('-');
     (h2h[k] = h2h[k] || {})[w] = ((h2h[k] || {})[w] || 0) + 1;
@@ -7536,7 +7572,7 @@ function renderEloCard(t){
         <div class="elo-stat"><b>${sign(st.fromCombats)} / ${sign(st.fromLockes)}</b><span>de combates / de lockes</span></div>
       </div>
       <div class="elo-h2h-wrap">${h2hRows}</div>
-      ${ELO_LEGACY_PROVISIONAL ? `<div class="elo-note">Historial de partidas anteriores provisional (repartido a partir de los marcadores totales) hasta cargar los combates reales.</div>` : ''}
+      ${ELO_LEGACY_PROVISIONAL ? `<div class="elo-note">Ultra Sol y Pokémon X ya usan el historial real combate a combate. Solo SoulSilver sigue siendo provisional (repartido a partir del marcador total) hasta tener el registro real.</div>` : ''}
     </div>`;
 }
 
