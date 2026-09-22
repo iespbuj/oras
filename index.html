@@ -8612,21 +8612,6 @@ function typeBadge(t, size){
   const c = TYPE_COLORS[t];
   return `<span class="type-badge${size?' '+size:''}" style="background:${c.bg};color:${c.dark?'#1a1408':'#fff'};">${TYPE_EMOJI[t]} ${TYPE_NAMES_ES[t]}</span>`;
 }
-// Habilidades que anulan por completo un tipo de ataque (inmunidad real de juego,
-// no solo tabla de tipos: por eso hacía falta preguntar la habilidad del rival).
-const ABILITY_IMMUNITY = {
-  levitate: 'ground', 'water-absorb': 'water', 'dry-skin': 'water', 'storm-drain': 'water',
-  'volt-absorb': 'electric', 'motor-drive': 'electric', 'lightning-rod': 'electric',
-  'flash-fire': 'fire', 'sap-sipper': 'grass',
-};
-const ABILITY_NAMES_ES = {
-  levitate: 'Levitación', 'water-absorb': 'Absorbe Agua', 'dry-skin': 'Piel Seca',
-  'storm-drain': 'Recolector', 'volt-absorb': 'Absorbe Electricidad', 'motor-drive': 'Motor Eléctrico',
-  'lightning-rod': 'Pararrayos', 'flash-fire': 'Absorbefuego', 'sap-sipper': 'Herbívoro',
-  'wonder-guard': 'Guardia Maravilla',
-};
-function abilityLabel(a){ return ABILITY_NAMES_ES[a] || a.split('-').map(w=>w[0].toUpperCase()+w.slice(1)).join(' '); }
-
 let _pokeInfoCache = {};
 async function fetchPokemonInfo(name){
   const slug = name.toLowerCase().trim().replace(/\s+/g,'-');
@@ -8636,8 +8621,7 @@ async function fetchPokemonInfo(name){
   const data = await res.json();
   const types = data.types.slice().sort((a,b)=>a.slot-b.slot).map(t=>t.type.name);
   const sprite = (data.sprites.other && data.sprites.other['official-artwork'] && data.sprites.other['official-artwork'].front_default) || data.sprites.front_default;
-  const abilities = data.abilities.slice().sort((a,b)=>a.slot-b.slot).map(a=>({ name:a.ability.name, hidden:a.is_hidden }));
-  const info = { name: data.name, types, sprite, abilities };
+  const info = { name: data.name, types, sprite };
   _pokeInfoCache[slug] = info;
   return info;
 }
@@ -8661,7 +8645,7 @@ async function fetchMoveInfo(name){
 const TC_TRAINER_KEY = 'triolocke_tc_trainer';
 let typeCalcState = {
   trainer: (function(){ try{ const v = localStorage.getItem(TC_TRAINER_KEY); return TRAINERS.includes(v) ? v : null; }catch(e){ return null; } })(),
-  mineId: '', rivalMode: 'any', rivalTrainer: '', rivalId: '', moveText: '',
+  mineId: '', rivalMode: 'any', rivalTrainer: '', rivalId: '', mineText: '', rivalText: '', moveText: '',
   result: null, err: '', loading: false,
 };
 function pickTcTrainer(t){
@@ -8686,10 +8670,10 @@ function tcMineSlot(){
   const picker = myTeam.length ? `
       <select id="tc-mine-sel" onchange="typeCalcState.mineId=this.value; typeCalcState.result=null; typeCalcState.err='';">
         <option value="">Elige de tu equipo…</option>
-        ${myTeam.map(p=>`<option value="${p.pid}" ${s.mineId===p.pid?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${myTeam.map(p=>`<option value="${p.pid}" ${String(s.mineId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>` : `
       <div class="field autocomplete-wrap" style="margin:0;">
-        <input type="text" id="tc-mine-txt" placeholder="ej: swampert" autocomplete="off">
+        <input type="text" id="tc-mine-txt" value="${s.mineText}" oninput="typeCalcState.mineText=this.value" placeholder="ej: swampert" autocomplete="off">
         <div class="autocomplete-list" id="tc-mine-txt-list"></div>
       </div>`;
   return `
@@ -8716,12 +8700,12 @@ function tcRivalSlot(){
       </select>
       <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.result=null; typeCalcState.err='';">
         <option value="">Elige su Pokémon…</option>
-        ${theirTeam.map(p=>`<option value="${p.pid}" ${s.rivalId===p.pid?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${theirTeam.map(p=>`<option value="${p.pid}" ${String(s.rivalId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>`;
   }else{
     picker = `
       <div class="field autocomplete-wrap" style="margin:0;">
-        <input type="text" id="tc-rival-txt" placeholder="ej: gyarados" autocomplete="off">
+        <input type="text" id="tc-rival-txt" value="${s.rivalText}" oninput="typeCalcState.rivalText=this.value" placeholder="ej: gyarados" autocomplete="off">
         <div class="autocomplete-list" id="tc-rival-txt-list"></div>
       </div>`;
   }
@@ -8768,13 +8752,6 @@ function renderTypeCalc(app){
         </div>
         ${s.result ? `<div class="tc-move-type">Es un movimiento ${typeBadge(s.result.moveInfo.type)}</div>` : ''}
       </div>
-      ${s.result && s.result.rivalInfo.abilities.length ? `
-      <div class="tc-atk-picker">
-        <label>Habilidad del rival (importa: puede anular el golpe)</label>
-        <select id="tc-ability-sel" onchange="onAbilityChange(this.value)">
-          ${s.result.rivalInfo.abilities.map(a=>`<option value="${a.name}" ${s.result.ability===a.name?'selected':''}>${abilityLabel(a.name)}${a.hidden?' (oculta)':''}</option>`).join('')}
-        </select>
-      </div>` : ''}
       <button class="primary tc-calc-btn" onclick="calcTypeMatch()" ${s.loading?'disabled':''}>${s.loading ? '⏳ Calculando…' : '⚔️ Calcular golpe'}</button>
       <div class="err-msg" id="tc-err">${s.err||''}</div>
       ${s.result ? renderTypeResult(s.result) : ''}
@@ -8791,28 +8768,17 @@ function renderTypeCalc(app){
   attachAutocomplete(document.getElementById('tc-move-txt'), document.getElementById('tc-move-txt-list'), ()=>MOVE_NAMES);
 }
 
-function onAbilityChange(ability){
-  if(!typeCalcState.result) return;
-  typeCalcState.result = computeTypeResult(typeCalcState.result.mineInfo, typeCalcState.result.rivalInfo, typeCalcState.result.moveInfo, ability);
-  render();
-}
-
-function computeTypeResult(mineInfo, rivalInfo, moveInfo, ability){
-  let baseMult = typeMultiplier(moveInfo.type, rivalInfo.types);
-  const immuneTo = ability && ABILITY_IMMUNITY[ability];
-  let nullifiedBy = null;
-  if(immuneTo === moveInfo.type){ baseMult = 0; nullifiedBy = ability; }
-  else if(ability === 'wonder-guard' && baseMult < 2){ baseMult = 0; nullifiedBy = ability; }
+function computeTypeResult(mineInfo, rivalInfo, moveInfo){
+  const baseMult = typeMultiplier(moveInfo.type, rivalInfo.types);
   const stab = mineInfo.types.includes(moveInfo.type);
   const totalMult = stab ? baseMult * 1.5 : baseMult;
-  return { baseMult, stab, totalMult, mineInfo, rivalInfo, moveInfo, ability, nullifiedBy };
+  return { baseMult, stab, totalMult, mineInfo, rivalInfo, moveInfo };
 }
 
 function renderTypeResult(r){
   const b = r.baseMult;
   let label, cls;
-  if(r.nullifiedBy){ label = `🛡️ ¡No le afecta! (${abilityLabel(r.nullifiedBy)})`; cls = 'bad'; }
-  else if(b === 0){ label = '❌ No afecta'; cls = 'bad'; }
+  if(b === 0){ label = '❌ No afecta'; cls = 'bad'; }
   else if(b >= 4){ label = '💥 ¡Es muchísimo más eficaz!'; cls = 'good'; }
   else if(b === 2){ label = '✅ ¡Es supereficaz!'; cls = 'good'; }
   else if(b === 1){ label = '➖ Eficacia normal'; cls = 'mid'; }
@@ -8822,7 +8788,7 @@ function renderTypeResult(r){
     <div class="type-calc-result ${cls}">
       <div class="tc-mult">x${fmt(b)}</div>
       <div class="tc-label">${label}</div>
-      ${(r.stab && !r.nullifiedBy) ? `<div class="tc-stab">✨ STAB (mismo tipo que ${r.mineInfo.name}) → con STAB serían <b>x${fmt(r.totalMult)}</b></div>` : ''}
+      ${r.stab ? `<div class="tc-stab">✨ STAB (mismo tipo que ${r.mineInfo.name}) → con STAB serían <b>x${fmt(r.totalMult)}</b></div>` : ''}
       <div class="tc-sub">${typeBadge(r.moveInfo.type)} de <b>${r.mineInfo.name}</b> contra <b>${r.rivalInfo.name}</b> (${r.rivalInfo.types.map(t=>typeBadge(t,'sm')).join(' ')})</div>
     </div>`;
 }
@@ -8831,41 +8797,38 @@ async function resolveMineInfo(){
   const s = typeCalcState;
   const myTeam = (teams[s.trainer]||[]).filter(p=>p && !p.fainted);
   if(myTeam.length){
-    const sel = document.getElementById('tc-mine-sel');
-    const monId = sel ? sel.value : s.mineId;
+    const monId = s.mineId;
     if(!monId) throw new Error('no mine');
-    typeCalcState.mineId = monId;
-    const mon = myTeam.find(p=>p.pid===monId);
+    const mon = myTeam.find(p=>String(p.pid)===String(monId));
     if(!mon) throw new Error('mon not found');
     return fetchPokemonInfo(mon.species);
   }
-  const txt = document.getElementById('tc-mine-txt').value.trim();
+  const txt = s.mineText.trim();
   if(!txt) throw new Error('no mine');
   return fetchPokemonInfo(txt);
 }
 async function resolveRivalInfo(){
   const s = typeCalcState;
   if(s.rivalMode === 'team'){
-    const rt = document.getElementById('tc-rival-trainer-sel').value;
-    const monId = document.getElementById('tc-rival-sel').value;
+    const rt = s.rivalTrainer || TRAINERS.find(t=>t!==s.trainer);
+    const monId = s.rivalId;
     if(!monId) throw new Error('no rival');
-    typeCalcState.rivalTrainer = rt; typeCalcState.rivalId = monId;
-    const mon = (teams[rt]||[]).find(p=>p.pid===monId);
+    const mon = (teams[rt]||[]).find(p=>String(p.pid)===String(monId));
     if(!mon) throw new Error('mon not found');
     return fetchPokemonInfo(mon.species);
   }
-  const txt = document.getElementById('tc-rival-txt').value.trim();
+  const txt = s.rivalText.trim();
   if(!txt) throw new Error('no rival');
   return fetchPokemonInfo(txt);
 }
 
 async function calcTypeMatch(){
   const s = typeCalcState;
-  const moveText = document.getElementById('tc-move-txt').value.trim();
-  s.moveText = moveText;
+  const moveInput = document.getElementById('tc-move-txt');
+  if(moveInput) s.moveText = moveInput.value.trim();
+  const moveText = s.moveText;
   if(!moveText){ s.err = 'Escribe qué movimiento vas a usar.'; s.result = null; render(); return; }
-  s.err = ''; s.loading = true;
-  // No renderizar aquí: render() reconstruye los selects y borra la selección actual del DOM.
+  s.err = ''; s.loading = true; render();
   try{
     let mineInfo, rivalInfo, moveInfo;
     try{ mineInfo = await resolveMineInfo(); }
@@ -8874,8 +8837,7 @@ async function calcTypeMatch(){
     catch(e){ throw new Error('Elige el Pokémon rival.'); }
     try{ moveInfo = await fetchMoveInfo(moveText); }
     catch(e){ throw new Error(`No he encontrado el movimiento "${moveText}". Prueba a escribirlo en español (ej: terremoto) o en inglés (ej: earthquake).`); }
-    const defaultAbility = rivalInfo.abilities[0] ? rivalInfo.abilities[0].name : '';
-    s.result = computeTypeResult(mineInfo, rivalInfo, moveInfo, defaultAbility);
+    s.result = computeTypeResult(mineInfo, rivalInfo, moveInfo);
   }catch(e){
     s.result = null;
     s.err = e.message || 'Revisa que hayas elegido los dos Pokémon y un movimiento que exista.';
