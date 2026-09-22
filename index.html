@@ -8864,7 +8864,8 @@ async function calcTypeMatch(){
   const moveText = document.getElementById('tc-move-txt').value.trim();
   s.moveText = moveText;
   if(!moveText){ s.err = 'Escribe qué movimiento vas a usar.'; s.result = null; render(); return; }
-  s.err = ''; s.loading = true; render();
+  s.err = ''; s.loading = true;
+  // No renderizar aquí: render() reconstruye los selects y borra la selección actual del DOM.
   try{
     let mineInfo, rivalInfo, moveInfo;
     try{ mineInfo = await resolveMineInfo(); }
