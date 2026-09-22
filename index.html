@@ -3171,21 +3171,30 @@ async function loadNameLists(){
   try{
     const r3 = await fetch('https://pokeapi.co/api/v2/move?limit=1000');
     const d3 = await r3.json();
-    const englishMoves = d3.results.map(p=>p.name);
-    const csvUrl = 'https://gist.githubusercontent.com/odanado/a9ffdc19abc0bc45917088f0d8cc3634/raw/e983c2ae149a21d71207507543f0631366270d79/moves.csv';
+    // id numérico del movimiento -> slug en inglés (el que espera /api/v2/move/<slug>)
+    const idToEnSlug = {};
+    for(const p of d3.results){
+      const m = p.url.match(/\/move\/(\d+)\/?$/);
+      if(m) idToEnSlug[m[1]] = p.name;
+    }
+    // CSV oficial de PokeAPI: move_id,local_language_id,name (7 = español)
+    const csvUrl = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/move_names.csv';
     const csvRes = await fetch(csvUrl);
     if(!csvRes.ok) throw new Error('failed to load Spanish move names');
     const csv = await csvRes.text();
     const lines = csv.split(/\r?\n/);
+    const reverse = {}; // slug en inglés -> nombre en español (para mostrar en la lista)
     for(const line of lines){
-      const cols = line.split(',').map(x=>x.trim().replace(/^\"|\"$/g,''));
-      if(cols.length < 6) continue;
-      const en = cols[2], es = cols[5];
-      if(en && es && en !== 'English' && es !== 'Spanish') MOVE_ES_TO_EN[normalizeMoveName(es)] = en;
+      const cols = line.split(',');
+      if(cols.length < 3) continue;
+      const id = cols[0].trim(), lang = cols[1].trim(), name = cols.slice(2).join(',').trim();
+      if(lang !== '7') continue; // solo español
+      const enSlug = idToEnSlug[id];
+      if(!enSlug || !name) continue;
+      MOVE_ES_TO_EN[normalizeMoveName(name)] = enSlug;
+      reverse[enSlug] = normalizeMoveName(name);
     }
-    const reverse = {};
-    for(const key in MOVE_ES_TO_EN) reverse[MOVE_ES_TO_EN[key]] = key;
-    MOVE_NAMES = englishMoves.map(en=>reverse[en] || en);
+    MOVE_NAMES = d3.results.map(p=> reverse[p.name] || p.name);
   }catch(e){
     console.error('failed to load Spanish move list', e);
     MOVE_NAMES = [];
@@ -8659,7 +8668,12 @@ async function fetchPokemonInfo(name){
 }
 let _moveInfoCache = {};
 async function fetchMoveInfo(name){
-  const slug = name.toLowerCase().trim().replace(/\s+/g,'-');
+  // Si lo que se ha escrito/elegido es un nombre en español, lo traducimos
+  // al slug en inglés que espera la PokeAPI. Si no está en el diccionario
+  // (p.ej. porque ya se escribió en inglés), se usa tal cual.
+  const key = normalizeMoveName(name);
+  const enName = MOVE_ES_TO_EN[key] || name;
+  const slug = enName.toLowerCase().trim().replace(/\s+/g,'-');
   if(_moveInfoCache[slug]) return _moveInfoCache[slug];
   const res = await fetch('https://pokeapi.co/api/v2/move/'+slug);
   if(!res.ok) throw new Error('not found');
