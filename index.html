@@ -3390,7 +3390,7 @@ async function loadAll(){
       return;
     }
     hearts[t] = profileResults[i].hearts;
-    teams[t] = profileResults[i].team;
+    teams[t] = normalizeTeamSpecies(profileResults[i].team);
     tickets[t] = profileResults[i].tickets || 0;
     pendingPrizes[t] = profileResults[i].pendingPrizes || [];
     dailyBonusDate[t] = profileResults[i].dailyBonusDate || null;
@@ -3433,6 +3433,7 @@ async function loadAll(){
   return changed;
 }
 async function saveProfile(t){
+  teams[t] = normalizeTeamSpecies(teams[t]);
   return await trackedStoreSet('profile:'+t, 'or:profile:'+t, { hearts: hearts[t], team: teams[t], tickets: tickets[t]||0, pendingPrizes: pendingPrizes[t]||[], dailyBonusDate: dailyBonusDate[t]||null, money: money[t]||0, badges: badgeBits[t]||0, locationName: locationName[t]||null });
 }
 
@@ -8200,6 +8201,19 @@ function readNickname(dec) {
   return out;
 }
 
+function normalizeSpeciesName(name){
+  const raw = String(name || '').trim();
+  const match = raw.match(/^#?(\d+)$/);
+  return match ? (SPECIES_NAMES[Number(match[1])] || raw) : raw;
+}
+
+function normalizeTeamSpecies(team){
+  return (Array.isArray(team) ? team : []).map(p => {
+    const species = normalizeSpeciesName(p && p.species);
+    return p && species !== p.species ? { ...p, species } : p;
+  });
+}
+
 // FIX importante: la especie es la UNICA señal fiable de "vacio". Comprobar
 // solo el PID/EC (offset 0) es un error, porque un Pokemon real inyectado con
 // un editor puede tener EC=0 y seguir siendo perfectamente valido (confirmado
@@ -8552,7 +8566,8 @@ async function confirmImportTeam(t){
 
 /* ---------------- PokeAPI helpers ---------------- */
 async function fetchPokemonSprite(name){
-  const slug = name.toLowerCase().trim().replace(/\s+/g,'-');
+  const resolvedName = normalizeSpeciesName(name);
+  const slug = resolvedName.toLowerCase().trim().replace(/\s+/g,'-');
   const res = await fetch('https://pokeapi.co/api/v2/pokemon/'+slug);
   if(!res.ok) throw new Error('not found');
   const data = await res.json();
@@ -8614,7 +8629,8 @@ function typeBadge(t, size){
 }
 let _pokeInfoCache = {};
 async function fetchPokemonInfo(name){
-  const slug = name.toLowerCase().trim().replace(/\s+/g,'-');
+  const resolvedName = normalizeSpeciesName(name);
+  const slug = resolvedName.toLowerCase().trim().replace(/\s+/g,'-');
   if(_pokeInfoCache[slug]) return _pokeInfoCache[slug];
   const res = await fetch('https://pokeapi.co/api/v2/pokemon/'+slug);
   if(!res.ok) throw new Error('not found');
@@ -8646,7 +8662,7 @@ const TC_TRAINER_KEY = 'triolocke_tc_trainer';
 let typeCalcState = {
   trainer: (function(){ try{ const v = localStorage.getItem(TC_TRAINER_KEY); return TRAINERS.includes(v) ? v : null; }catch(e){ return null; } })(),
   mineId: '', rivalMode: 'any', rivalTrainer: '', rivalId: '', mineText: '', rivalText: '', moveText: '',
-  minePreview: null, rivalPreview: null,
+  minePreview: null, rivalPreview: null, mineSpecies: '', rivalSpecies: '',
   result: null, err: '', loading: false,
 };
 function pickTcTrainer(t){
@@ -8695,9 +8711,9 @@ function tcMineSlot(){
   const myTeam = (teams[s.trainer]||[]).filter(p=>p && !p.fainted);
   const info = s.result ? s.result.mineInfo : s.minePreview;
   const picker = myTeam.length ? `
-      <select id="tc-mine-sel" onchange="typeCalcState.mineId=this.value; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('mine', this.value);">
+      <select id="tc-mine-sel" onchange="typeCalcState.mineId=this.value; typeCalcState.mineSpecies=this.selectedOptions[0]?.dataset.species || ''; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('mine', this.value);">
         <option value="">Elige de tu equipo…</option>
-        ${myTeam.map(p=>`<option value="${p.pid}" ${String(s.mineId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${myTeam.map(p=>`<option value="${p.pid}" data-species="${p.species}" ${String(s.mineId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>` : `
       <div class="field autocomplete-wrap" style="margin:0;">
         <input type="text" id="tc-mine-txt" value="${s.mineText}" oninput="typeCalcState.mineText=this.value; typeCalcState.minePreview=null; typeCalcState.result=null" onblur="loadTypeCalcPreview('mine', this.value)" placeholder="ej: swampert" autocomplete="off">
@@ -8722,12 +8738,12 @@ function tcRivalSlot(){
     const rt = s.rivalTrainer || otherTrainers[0];
     const theirTeam = (teams[rt]||[]).filter(p=>p && !p.fainted);
     picker = `
-      <select id="tc-rival-trainer-sel" onchange="typeCalcState.rivalTrainer=this.value; typeCalcState.rivalId=''; render();" style="margin-bottom:8px;">
+      <select id="tc-rival-trainer-sel" onchange="typeCalcState.rivalTrainer=this.value; typeCalcState.rivalId=''; typeCalcState.rivalSpecies=''; typeCalcState.rivalPreview=null; render();" style="margin-bottom:8px;">
         ${otherTrainers.map(t=>`<option value="${t}" ${rt===t?'selected':''}>${NAMES[t]}</option>`).join('')}
       </select>
-      <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('rival', this.value);">
+      <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.rivalSpecies=this.selectedOptions[0]?.dataset.species || ''; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('rival', this.value);">
         <option value="">Elige su Pokémon…</option>
-        ${theirTeam.map(p=>`<option value="${p.pid}" ${String(s.rivalId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${theirTeam.map(p=>`<option value="${p.pid}" data-species="${p.species}" ${String(s.rivalId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>`;
   }else{
     picker = `
@@ -8827,8 +8843,9 @@ async function resolveMineInfo(){
     const monId = s.mineId;
     if(!monId) throw new Error('no mine');
     const mon = myTeam.find(p=>String(p.pid)===String(monId));
-    if(!mon) throw new Error('mon not found');
-    return fetchPokemonInfo(mon.species);
+    const species = s.mineSpecies || mon?.species;
+    if(!species) throw new Error('no mine');
+    return fetchPokemonInfo(species);
   }
   const txt = s.mineText.trim();
   if(!txt) throw new Error('no mine');
@@ -8841,8 +8858,9 @@ async function resolveRivalInfo(){
     const monId = s.rivalId;
     if(!monId) throw new Error('no rival');
     const mon = (teams[rt]||[]).find(p=>String(p.pid)===String(monId));
-    if(!mon) throw new Error('mon not found');
-    return fetchPokemonInfo(mon.species);
+    const species = s.rivalSpecies || mon?.species;
+    if(!species) throw new Error('no rival');
+    return fetchPokemonInfo(species);
   }
   const txt = s.rivalText.trim();
   if(!txt) throw new Error('no rival');
@@ -8861,7 +8879,11 @@ async function calcTypeMatch(){
   if(rivalInput) s.rivalText = rivalInput.value.trim();
   if(mineSelect) s.mineId = mineSelect.value;
   if(rivalTrainerSelect) s.rivalTrainer = rivalTrainerSelect.value;
-  if(rivalSelect) s.rivalId = rivalSelect.value;
+  if(mineSelect) s.mineSpecies = mineSelect.selectedOptions[0]?.dataset.species || '';
+  if(rivalSelect){
+    s.rivalId = rivalSelect.value;
+    s.rivalSpecies = rivalSelect.selectedOptions[0]?.dataset.species || '';
+  }
   if(moveInput) s.moveText = moveInput.value.trim();
   const moveText = s.moveText;
   if(!moveText){ s.err = 'Escribe qué movimiento vas a usar.'; s.result = null; render(); return; }
