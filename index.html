@@ -3153,6 +3153,10 @@ let lastLoadSignature = null; // para saber si el ultimo loadAll() trajo algo di
 let POKEMON_NAMES = [];
 let ITEM_NAMES = [];
 let MOVE_NAMES = [];
+let MOVE_ES_TO_EN = {};
+function normalizeMoveName(name){
+  return String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
 async function loadNameLists(){
   try{
     const r1 = await fetch('https://pokeapi.co/api/v2/pokemon?limit=20000');
@@ -3167,8 +3171,25 @@ async function loadNameLists(){
   try{
     const r3 = await fetch('https://pokeapi.co/api/v2/move?limit=1000');
     const d3 = await r3.json();
-    MOVE_NAMES = d3.results.map(p=>p.name);
-  }catch(e){ console.error('failed to load move list', e); }
+    const englishMoves = d3.results.map(p=>p.name);
+    const csvUrl = 'https://gist.githubusercontent.com/odanado/a9ffdc19abc0bc45917088f0d8cc3634/raw/e983c2ae149a21d71207507543f0631366270d79/moves.csv';
+    const csvRes = await fetch(csvUrl);
+    if(!csvRes.ok) throw new Error('failed to load Spanish move names');
+    const csv = await csvRes.text();
+    const lines = csv.split(/\r?\n/);
+    for(const line of lines){
+      const cols = line.split(',').map(x=>x.trim().replace(/^\"|\"$/g,''));
+      if(cols.length < 6) continue;
+      const en = cols[2], es = cols[5];
+      if(en && es && en !== 'English' && es !== 'Spanish') MOVE_ES_TO_EN[normalizeMoveName(es)] = en;
+    }
+    const reverse = {};
+    for(const key in MOVE_ES_TO_EN) reverse[MOVE_ES_TO_EN[key]] = key;
+    MOVE_NAMES = englishMoves.map(en=>reverse[en] || en);
+  }catch(e){
+    console.error('failed to load Spanish move list', e);
+    MOVE_NAMES = [];
+  }
 }
 
 /* ---------------- Backend: Google Sheets via Apps Script ---------------- */
@@ -8753,7 +8774,7 @@ function renderTypeCalc(app){
       <div class="tc-atk-picker">
         <label>Movimiento que va a usar tu Pokémon</label>
         <div class="field autocomplete-wrap" style="margin:0;">
-          <input type="text" id="tc-move-txt" value="${s.moveText}" placeholder="ej: terremoto → earthquake" autocomplete="off">
+          <input type="text" id="tc-move-txt" value="${s.moveText}" placeholder="ej: terremoto" autocomplete="off">
           <div class="autocomplete-list" id="tc-move-txt-list"></div>
         </div>
         ${s.result ? `<div class="tc-move-type">Es un movimiento ${typeBadge(s.result.moveInfo.type)}</div>` : ''}
