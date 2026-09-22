@@ -8646,6 +8646,7 @@ const TC_TRAINER_KEY = 'triolocke_tc_trainer';
 let typeCalcState = {
   trainer: (function(){ try{ const v = localStorage.getItem(TC_TRAINER_KEY); return TRAINERS.includes(v) ? v : null; }catch(e){ return null; } })(),
   mineId: '', rivalMode: 'any', rivalTrainer: '', rivalId: '', mineText: '', rivalText: '', moveText: '',
+  minePreview: null, rivalPreview: null,
   result: null, err: '', loading: false,
 };
 function pickTcTrainer(t){
@@ -8662,18 +8663,44 @@ function setRivalMode(mode){
   typeCalcState.rivalMode = mode; typeCalcState.result = null; typeCalcState.err = '';
   render();
 }
+async function loadTypeCalcPreview(side, name){
+  const request = String(name || '').trim();
+  if(!request) return;
+  try{
+    const info = await fetchPokemonInfo(request);
+    const current = side === 'mine' ? typeCalcState.mineText : typeCalcState.rivalText;
+    if(current.trim().toLowerCase() !== request.toLowerCase()) return;
+    typeCalcState[side === 'mine' ? 'minePreview' : 'rivalPreview'] = info;
+    render();
+  }catch(e){
+    typeCalcState[side === 'mine' ? 'minePreview' : 'rivalPreview'] = null;
+  }
+}
+async function selectTcTeamPokemon(side, id){
+  const s = typeCalcState;
+  const trainer = side === 'mine' ? s.trainer : (s.rivalTrainer || TRAINERS.find(t=>t!==s.trainer));
+  const mon = (teams[trainer]||[]).find(p=>p && String(p.pid)===String(id));
+  const key = side === 'mine' ? 'minePreview' : 'rivalPreview';
+  typeCalcState[key] = null;
+  typeCalcState.result = null;
+  if(mon){
+    try{ typeCalcState[key] = await fetchPokemonInfo(mon.species); }
+    catch(e){ typeCalcState.err = 'No se ha podido cargar la información del Pokémon.'; }
+  }
+  render();
+}
 
 function tcMineSlot(){
   const s = typeCalcState;
   const myTeam = (teams[s.trainer]||[]).filter(p=>p && !p.fainted);
-  const info = s.result ? s.result.mineInfo : null;
+  const info = s.result ? s.result.mineInfo : s.minePreview;
   const picker = myTeam.length ? `
-      <select id="tc-mine-sel" onchange="typeCalcState.mineId=this.value; typeCalcState.result=null; typeCalcState.err='';">
+      <select id="tc-mine-sel" onchange="typeCalcState.mineId=this.value; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('mine', this.value);">
         <option value="">Elige de tu equipo…</option>
         ${myTeam.map(p=>`<option value="${p.pid}" ${String(s.mineId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>` : `
       <div class="field autocomplete-wrap" style="margin:0;">
-        <input type="text" id="tc-mine-txt" value="${s.mineText}" oninput="typeCalcState.mineText=this.value" placeholder="ej: swampert" autocomplete="off">
+        <input type="text" id="tc-mine-txt" value="${s.mineText}" oninput="typeCalcState.mineText=this.value; typeCalcState.minePreview=null; typeCalcState.result=null" onblur="loadTypeCalcPreview('mine', this.value)" placeholder="ej: swampert" autocomplete="off">
         <div class="autocomplete-list" id="tc-mine-txt-list"></div>
       </div>`;
   return `
@@ -8688,7 +8715,7 @@ function tcMineSlot(){
 
 function tcRivalSlot(){
   const s = typeCalcState;
-  const info = s.result ? s.result.rivalInfo : null;
+  const info = s.result ? s.result.rivalInfo : s.rivalPreview;
   const otherTrainers = TRAINERS.filter(t=>t!==s.trainer);
   let picker;
   if(s.rivalMode === 'team'){
@@ -8698,14 +8725,14 @@ function tcRivalSlot(){
       <select id="tc-rival-trainer-sel" onchange="typeCalcState.rivalTrainer=this.value; typeCalcState.rivalId=''; render();" style="margin-bottom:8px;">
         ${otherTrainers.map(t=>`<option value="${t}" ${rt===t?'selected':''}>${NAMES[t]}</option>`).join('')}
       </select>
-      <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.result=null; typeCalcState.err='';">
+      <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('rival', this.value);">
         <option value="">Elige su Pokémon…</option>
         ${theirTeam.map(p=>`<option value="${p.pid}" ${String(s.rivalId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>`;
   }else{
     picker = `
       <div class="field autocomplete-wrap" style="margin:0;">
-        <input type="text" id="tc-rival-txt" value="${s.rivalText}" oninput="typeCalcState.rivalText=this.value" placeholder="ej: gyarados" autocomplete="off">
+        <input type="text" id="tc-rival-txt" value="${s.rivalText}" oninput="typeCalcState.rivalText=this.value; typeCalcState.rivalPreview=null; typeCalcState.result=null" onblur="loadTypeCalcPreview('rival', this.value)" placeholder="ej: gyarados" autocomplete="off">
         <div class="autocomplete-list" id="tc-rival-txt-list"></div>
       </div>`;
   }
@@ -8824,7 +8851,11 @@ async function resolveRivalInfo(){
 
 async function calcTypeMatch(){
   const s = typeCalcState;
+  const mineInput = document.getElementById('tc-mine-txt');
+  const rivalInput = document.getElementById('tc-rival-txt');
   const moveInput = document.getElementById('tc-move-txt');
+  if(mineInput) s.mineText = mineInput.value.trim();
+  if(rivalInput) s.rivalText = rivalInput.value.trim();
   if(moveInput) s.moveText = moveInput.value.trim();
   const moveText = s.moveText;
   if(!moveText){ s.err = 'Escribe qué movimiento vas a usar.'; s.result = null; render(); return; }
@@ -8860,6 +8891,9 @@ function attachAutocomplete(inputEl, dropdownEl, getList){
     [...dropdownEl.children].forEach((el,i)=>{
       el.onclick = ()=>{
         inputEl.value = matches[i];
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        if(inputEl.id === 'tc-mine-txt') loadTypeCalcPreview('mine', inputEl.value);
+        if(inputEl.id === 'tc-rival-txt') loadTypeCalcPreview('rival', inputEl.value);
         dropdownEl.classList.remove('show'); dropdownEl.innerHTML='';
         inputEl.focus();
       };
