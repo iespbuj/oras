@@ -8853,9 +8853,15 @@ async function calcTypeMatch(){
   const s = typeCalcState;
   const mineInput = document.getElementById('tc-mine-txt');
   const rivalInput = document.getElementById('tc-rival-txt');
+  const mineSelect = document.getElementById('tc-mine-sel');
+  const rivalTrainerSelect = document.getElementById('tc-rival-trainer-sel');
+  const rivalSelect = document.getElementById('tc-rival-sel');
   const moveInput = document.getElementById('tc-move-txt');
   if(mineInput) s.mineText = mineInput.value.trim();
   if(rivalInput) s.rivalText = rivalInput.value.trim();
+  if(mineSelect) s.mineId = mineSelect.value;
+  if(rivalTrainerSelect) s.rivalTrainer = rivalTrainerSelect.value;
+  if(rivalSelect) s.rivalId = rivalSelect.value;
   if(moveInput) s.moveText = moveInput.value.trim();
   const moveText = s.moveText;
   if(!moveText){ s.err = 'Escribe qué movimiento vas a usar.'; s.result = null; render(); return; }
@@ -8889,6 +8895,7 @@ function attachAutocomplete(inputEl, dropdownEl, getList){
     dropdownEl.innerHTML = matches.map(n=>`<div class="autocomplete-item">${n.replace(/-/g,' ')}</div>`).join('');
     dropdownEl.classList.add('show');
     [...dropdownEl.children].forEach((el,i)=>{
+      el.onmousedown = event => event.preventDefault();
       el.onclick = ()=>{
         inputEl.value = matches[i];
         inputEl.dispatchEvent(new Event('input', { bubbles: true }));
