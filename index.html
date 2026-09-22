@@ -8684,7 +8684,7 @@ function tcMineSlot(){
   const myTeam = (teams[s.trainer]||[]).filter(p=>p && !p.fainted);
   const info = s.result ? s.result.mineInfo : null;
   const picker = myTeam.length ? `
-      <select id="tc-mine-sel">
+      <select id="tc-mine-sel" onchange="typeCalcState.mineId=this.value; typeCalcState.result=null; typeCalcState.err='';">
         <option value="">Elige de tu equipo…</option>
         ${myTeam.map(p=>`<option value="${p.pid}" ${s.mineId===p.pid?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>` : `
@@ -8714,7 +8714,7 @@ function tcRivalSlot(){
       <select id="tc-rival-trainer-sel" onchange="typeCalcState.rivalTrainer=this.value; typeCalcState.rivalId=''; render();" style="margin-bottom:8px;">
         ${otherTrainers.map(t=>`<option value="${t}" ${rt===t?'selected':''}>${NAMES[t]}</option>`).join('')}
       </select>
-      <select id="tc-rival-sel">
+      <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.result=null; typeCalcState.err='';">
         <option value="">Elige su Pokémon…</option>
         ${theirTeam.map(p=>`<option value="${p.pid}" ${s.rivalId===p.pid?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>`;
