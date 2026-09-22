@@ -2214,20 +2214,49 @@ body.casino-mode main{ max-width:1320px; }
 .chipx.elo{ color:#9fe6ff; border-color:rgba(60,203,255,.45); background:rgba(60,203,255,.1); }
 
 /* ---------------------------------------------------------- CALCULADORA DE TIPOS */
-.type-calc-form{ display:grid; gap:2px; max-width:420px; }
-.type-calc-form .field select{ cursor:pointer; }
-.tc-calc-btn{ margin-top:6px; }
-.type-calc-result{ margin-top:18px; padding:16px 18px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,.03); text-align:center; }
+.type-calc-card{ max-width:640px; margin:0 auto; padding:24px 22px 28px; }
+.tc-arena{ display:grid; grid-template-columns:1fr auto 1fr; align-items:start; gap:14px; }
+@media (max-width:560px){ .tc-arena{ grid-template-columns:1fr; } }
+.tc-mon-slot{ display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+.tc-mon-art{
+  width:92px; height:92px; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 50% 30%, var(--panel-2) 0%, var(--bg-elev) 78%);
+  border:1px solid var(--border); box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.tc-mon-art img{ width:76px; height:76px; object-fit:contain; filter:drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
+.tc-mon-art.empty{ border-style:dashed; }
+.tc-mon-placeholder{ font-family:var(--f-display); font-size:30px; color:var(--silver-dim); opacity:.5; }
+.tc-mon-slot .field{ width:100%; margin-bottom:0; }
+.tc-mon-types{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+.tc-vs{
+  align-self:center; margin-top:38px; font-family:var(--f-display); font-weight:800; font-size:15px;
+  color:var(--silver-dim); letter-spacing:1px; padding:6px 10px; border:1px dashed var(--border); border-radius:999px;
+}
+@media (max-width:560px){ .tc-vs{ margin:0; justify-self:center; } }
+.tc-atk-picker{ margin-top:22px; }
+.tc-atk-picker > label{ display:block; font-size:12px; color:var(--silver-dim); letter-spacing:.5px; margin-bottom:8px; }
+.tc-type-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(94px,1fr)); gap:8px; }
+.tc-type-opt{
+  border:1px solid rgba(0,0,0,.25); border-radius:8px; padding:8px 6px; cursor:pointer;
+  font-family:var(--f-ui); font-size:12px; font-weight:700; letter-spacing:.2px;
+  transition:transform .12s ease, filter .12s ease; filter:saturate(.82) brightness(.92);
+}
+.tc-type-opt:hover{ transform:translateY(-2px); filter:saturate(1) brightness(1); }
+.tc-type-opt.active{ transform:translateY(-2px); filter:saturate(1.08) brightness(1.05); }
+.tc-calc-btn{ margin-top:20px; width:100%; }
+.type-badge{ display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700; letter-spacing:.2px; white-space:nowrap; }
+.type-badge.sm{ padding:2px 8px; font-size:10.5px; }
+.type-calc-result{ margin-top:20px; padding:18px 18px 16px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,.03); text-align:center; }
 .type-calc-result.good{ border-color:rgba(57,230,160,.5); background:rgba(57,230,160,.08); }
 .type-calc-result.mid{ border-color:rgba(255,194,51,.5); background:rgba(255,194,51,.07); }
 .type-calc-result.bad{ border-color:rgba(255,46,99,.45); background:rgba(255,46,99,.07); }
-.tc-mult{ font-family:var(--f-display); font-weight:800; font-size:40px; line-height:1; color:var(--silver-bright); }
+.tc-mult{ font-family:var(--f-display); font-weight:800; font-size:44px; line-height:1; color:var(--silver-bright); }
 .type-calc-result.good .tc-mult{ color:var(--neon-green); }
 .type-calc-result.mid .tc-mult{ color:var(--neon-yellow); }
 .type-calc-result.bad .tc-mult{ color:var(--danger); }
 .tc-label{ margin-top:6px; font-family:var(--f-ui); font-weight:700; font-size:13.5px; letter-spacing:.4px; }
-.tc-stab{ margin-top:8px; font-family:var(--f-mono); font-size:12px; color:var(--sapphire); }
-.tc-sub{ margin-top:10px; font-size:11.5px; color:var(--silver-dim); text-transform:capitalize; }
+.tc-stab{ margin-top:10px; font-family:var(--f-mono); font-size:12px; color:var(--sapphire); }
+.tc-sub{ margin-top:12px; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; font-size:12px; color:var(--silver-dim); }
 
 </style>
 </head>
@@ -8522,6 +8551,16 @@ async function fetchItemSprite(name){
 const TYPE_LIST = ['normal','fire','water','electric','grass','ice','fighting','poison','ground','flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy'];
 const TYPE_NAMES_ES = { normal:'Normal', fire:'Fuego', water:'Agua', electric:'Eléctrico', grass:'Planta', ice:'Hielo', fighting:'Lucha', poison:'Veneno', ground:'Tierra', flying:'Volador', psychic:'Psíquico', bug:'Bicho', rock:'Roca', ghost:'Fantasma', dragon:'Dragón', dark:'Siniestro', steel:'Acero', fairy:'Hada' };
 const TYPE_EMOJI = { normal:'⚪', fire:'🔥', water:'💧', electric:'⚡', grass:'🌿', ice:'❄️', fighting:'🥊', poison:'☠️', ground:'⛰️', flying:'🌪️', psychic:'🔮', bug:'🐛', rock:'🪨', ghost:'👻', dragon:'🐉', dark:'🌑', steel:'⚙️', fairy:'✨' };
+// Colores oficiales de cada tipo (los de siempre, Bulbapedia/juegos) + si el texto
+// encima queda mejor oscuro (fondos claros) o blanco (fondos oscuros/saturados).
+const TYPE_COLORS = {
+  normal:{bg:'#A8A878',dark:true}, fire:{bg:'#F08030',dark:false}, water:{bg:'#6890F0',dark:false},
+  electric:{bg:'#F8D030',dark:true}, grass:{bg:'#78C850',dark:false}, ice:{bg:'#98D8D8',dark:true},
+  fighting:{bg:'#C03028',dark:false}, poison:{bg:'#A040A0',dark:false}, ground:{bg:'#E0C068',dark:true},
+  flying:{bg:'#A890F0',dark:true}, psychic:{bg:'#F85888',dark:false}, bug:{bg:'#A8B820',dark:true},
+  rock:{bg:'#B8A038',dark:true}, ghost:{bg:'#705898',dark:false}, dragon:{bg:'#7038F8',dark:false},
+  dark:{bg:'#705848',dark:false}, steel:{bg:'#B8B8D0',dark:true}, fairy:{bg:'#EE99AC',dark:true},
+};
 // attacker -> { defender: multiplicador } (solo se listan las excepciones a x1)
 const TYPE_CHART = {
   normal:   { rock:0.5, steel:0.5, ghost:0 },
@@ -8546,50 +8585,87 @@ const TYPE_CHART = {
 function typeMultiplier(atkType, defTypes){
   return defTypes.reduce((m, d) => m * (TYPE_CHART[atkType] && TYPE_CHART[atkType][d] !== undefined ? TYPE_CHART[atkType][d] : 1), 1);
 }
-let _pokeTypesCache = {};
-async function fetchPokemonTypes(name){
+function typeBadge(t, size){
+  const c = TYPE_COLORS[t];
+  return `<span class="type-badge${size?' '+size:''}" style="background:${c.bg};color:${c.dark?'#1a1408':'#fff'};">${TYPE_EMOJI[t]} ${TYPE_NAMES_ES[t]}</span>`;
+}
+let _pokeInfoCache = {};
+async function fetchPokemonInfo(name){
   const slug = name.toLowerCase().trim().replace(/\s+/g,'-');
-  if(_pokeTypesCache[slug]) return _pokeTypesCache[slug];
+  if(_pokeInfoCache[slug]) return _pokeInfoCache[slug];
   const res = await fetch('https://pokeapi.co/api/v2/pokemon/'+slug);
   if(!res.ok) throw new Error('not found');
   const data = await res.json();
   const types = data.types.slice().sort((a,b)=>a.slot-b.slot).map(t=>t.type.name);
-  _pokeTypesCache[slug] = types;
-  return types;
+  const sprite = (data.sprites.other && data.sprites.other['official-artwork'] && data.sprites.other['official-artwork'].front_default) || data.sprites.front_default;
+  const info = { name: data.name, types, sprite };
+  _pokeInfoCache[slug] = info;
+  return info;
 }
 
 let typeCalcState = { mine:'', rival:'', atk:'fire', result:null, err:'', loading:false };
+
+function tcMonSlot(side, label){
+  const s = typeCalcState;
+  const val = side === 'mine' ? s.mine : s.rival;
+  const info = s.result && (side === 'mine' ? s.result.mineInfo : s.result.rivalInfo);
+  return `
+    <div class="tc-mon-slot">
+      <div class="tc-mon-art ${info ? '' : 'empty'}">
+        ${info ? `<img src="${info.sprite}" alt="">` : `<span class="tc-mon-placeholder">?</span>`}
+      </div>
+      <div class="field autocomplete-wrap">
+        <label>${label}</label>
+        <input type="text" id="tc-${side}" value="${val}" placeholder="${side==='mine'?'ej: swampert':'ej: gyarados'}" autocomplete="off">
+        <div class="autocomplete-list" id="tc-${side}-list"></div>
+      </div>
+      ${info ? `<div class="tc-mon-types">${info.types.map(t=>typeBadge(t,'sm')).join('')}</div>` : ''}
+    </div>`;
+}
 
 function renderTypeCalc(app){
   const s = typeCalcState;
   app.innerHTML = `
     <div class="section-label">🥊 Calculadora de tipos</div>
-    <div class="kpi brk">
-      <div class="type-calc-form">
-        <div class="field autocomplete-wrap">
-          <label>Tu Pokémon</label>
-          <input type="text" id="tc-mine" value="${s.mine}" placeholder="ej: swampert" autocomplete="off">
-          <div class="autocomplete-list" id="tc-mine-list"></div>
-        </div>
-        <div class="field autocomplete-wrap">
-          <label>Pokémon rival</label>
-          <input type="text" id="tc-rival" value="${s.rival}" placeholder="ej: gyarados" autocomplete="off">
-          <div class="autocomplete-list" id="tc-rival-list"></div>
-        </div>
-        <div class="field">
-          <label>Tipo del ataque</label>
-          <select id="tc-atk">
-            ${TYPE_LIST.map(t=>`<option value="${t}" ${t===s.atk?'selected':''}>${TYPE_EMOJI[t]} ${TYPE_NAMES_ES[t]}</option>`).join('')}
-          </select>
-        </div>
-        <button class="primary tc-calc-btn" onclick="calcTypeMatch()" ${s.loading?'disabled':''}>${s.loading ? 'Calculando…' : 'Calcular'}</button>
-        <div class="err-msg" id="tc-err">${s.err||''}</div>
+    <div class="kpi brk type-calc-card">
+      <div class="tc-arena">
+        ${tcMonSlot('mine', 'Tu Pokémon')}
+        <div class="tc-vs">VS</div>
+        ${tcMonSlot('rival', 'Pokémon rival')}
       </div>
+      <div class="tc-atk-picker">
+        <label>Tipo del ataque</label>
+        <div class="tc-type-grid">
+          ${TYPE_LIST.map(t=>{
+            const c = TYPE_COLORS[t];
+            const active = t === s.atk;
+            return `<button type="button" class="tc-type-opt${active?' active':''}" data-t="${t}"
+              style="background:${c.bg};color:${c.dark?'#1a1408':'#fff'};${active?'box-shadow:0 0 0 3px var(--silver-bright), 0 4px 14px rgba(0,0,0,.4);':''}"
+              onclick="pickAtkType('${t}')">${TYPE_EMOJI[t]} ${TYPE_NAMES_ES[t]}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      <button class="primary tc-calc-btn" onclick="calcTypeMatch()" ${s.loading?'disabled':''}>${s.loading ? '⏳ Calculando…' : '⚔️ Calcular golpe'}</button>
+      <div class="err-msg" id="tc-err">${s.err||''}</div>
       ${s.result ? renderTypeResult(s.result) : ''}
     </div>
   `;
   attachAutocomplete(document.getElementById('tc-mine'), document.getElementById('tc-mine-list'), ()=>POKEMON_NAMES);
   attachAutocomplete(document.getElementById('tc-rival'), document.getElementById('tc-rival-list'), ()=>POKEMON_NAMES);
+}
+function pickAtkType(t){
+  typeCalcState.mine = document.getElementById('tc-mine').value;
+  typeCalcState.rival = document.getElementById('tc-rival').value;
+  typeCalcState.atk = t;
+  // si ya teníamos resultado, recalculamos al vuelo sin tener que volver a pedir datos
+  if(typeCalcState.result){
+    const { mineInfo, rivalInfo } = typeCalcState.result;
+    const baseMult = typeMultiplier(t, rivalInfo.types);
+    const stab = mineInfo.types.includes(t);
+    const totalMult = stab ? baseMult * 1.5 : baseMult;
+    typeCalcState.result = { baseMult, stab, totalMult, atk: t, mineInfo, rivalInfo };
+  }
+  render();
 }
 
 function renderTypeResult(r){
@@ -8605,24 +8681,24 @@ function renderTypeResult(r){
     <div class="type-calc-result ${cls}">
       <div class="tc-mult">x${fmt(b)}</div>
       <div class="tc-label">${label}</div>
-      ${r.stab ? `<div class="tc-stab">+ STAB (mismo tipo que tu Pokémon) → con STAB serían x${fmt(r.totalMult)}</div>` : ''}
-      <div class="tc-sub">${r.mineName} (${r.mineTypes.map(t=>TYPE_EMOJI[t]+' '+TYPE_NAMES_ES[t]).join(' / ')}) usa ${TYPE_EMOJI[r.atk]} ${TYPE_NAMES_ES[r.atk]} contra ${r.rivalName} (${r.rivalTypes.map(t=>TYPE_EMOJI[t]+' '+TYPE_NAMES_ES[t]).join(' / ')})</div>
+      ${r.stab ? `<div class="tc-stab">✨ STAB (mismo tipo que ${r.mineInfo.name}) → con STAB serían <b>x${fmt(r.totalMult)}</b></div>` : ''}
+      <div class="tc-sub">${typeBadge(r.atk)} de <b>${r.mineInfo.name}</b> contra <b>${r.rivalInfo.name}</b> (${r.rivalInfo.types.map(t=>typeBadge(t,'sm')).join(' ')})</div>
     </div>`;
 }
 
 async function calcTypeMatch(){
   const mineInput = document.getElementById('tc-mine').value.trim();
   const rivalInput = document.getElementById('tc-rival').value.trim();
-  const atk = document.getElementById('tc-atk').value;
-  typeCalcState.mine = mineInput; typeCalcState.rival = rivalInput; typeCalcState.atk = atk;
+  typeCalcState.mine = mineInput; typeCalcState.rival = rivalInput;
   if(!mineInput || !rivalInput){ typeCalcState.err = 'Escribe los dos Pokémon.'; typeCalcState.result = null; render(); return; }
   typeCalcState.err = ''; typeCalcState.loading = true; render();
   try{
-    const [mineTypes, rivalTypes] = await Promise.all([fetchPokemonTypes(mineInput), fetchPokemonTypes(rivalInput)]);
-    const baseMult = typeMultiplier(atk, rivalTypes);
-    const stab = mineTypes.includes(atk);
+    const [mineInfo, rivalInfo] = await Promise.all([fetchPokemonInfo(mineInput), fetchPokemonInfo(rivalInput)]);
+    const atk = typeCalcState.atk;
+    const baseMult = typeMultiplier(atk, rivalInfo.types);
+    const stab = mineInfo.types.includes(atk);
     const totalMult = stab ? baseMult * 1.5 : baseMult;
-    typeCalcState.result = { baseMult, stab, totalMult, atk, mineName: mineInput, rivalName: rivalInput, mineTypes, rivalTypes };
+    typeCalcState.result = { baseMult, stab, totalMult, atk, mineInfo, rivalInfo };
   }catch(e){
     typeCalcState.result = null;
     typeCalcState.err = 'No he encontrado alguno de los dos Pokémon, revisa el nombre.';
