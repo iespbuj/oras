@@ -8686,7 +8686,7 @@ function tcMineSlot(){
   const picker = myTeam.length ? `
       <select id="tc-mine-sel">
         <option value="">Elige de tu equipo…</option>
-        ${myTeam.map(p=>`<option value="${p.id}" ${s.mineId===p.id?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${myTeam.map(p=>`<option value="${p.pid}" ${s.mineId===p.pid?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>` : `
       <div class="field autocomplete-wrap" style="margin:0;">
         <input type="text" id="tc-mine-txt" placeholder="ej: swampert" autocomplete="off">
@@ -8716,7 +8716,7 @@ function tcRivalSlot(){
       </select>
       <select id="tc-rival-sel">
         <option value="">Elige su Pokémon…</option>
-        ${theirTeam.map(p=>`<option value="${p.id}" ${s.rivalId===p.id?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${theirTeam.map(p=>`<option value="${p.pid}" ${s.rivalId===p.pid?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
       </select>`;
   }else{
     picker = `
@@ -8835,7 +8835,7 @@ async function resolveMineInfo(){
     const monId = sel ? sel.value : s.mineId;
     if(!monId) throw new Error('no mine');
     typeCalcState.mineId = monId;
-    const mon = myTeam.find(p=>p.id===monId);
+    const mon = myTeam.find(p=>p.pid===monId);
     if(!mon) throw new Error('mon not found');
     return fetchPokemonInfo(mon.species);
   }
@@ -8850,7 +8850,7 @@ async function resolveRivalInfo(){
     const monId = document.getElementById('tc-rival-sel').value;
     if(!monId) throw new Error('no rival');
     typeCalcState.rivalTrainer = rt; typeCalcState.rivalId = monId;
-    const mon = (teams[rt]||[]).find(p=>p.id===monId);
+    const mon = (teams[rt]||[]).find(p=>p.pid===monId);
     if(!mon) throw new Error('mon not found');
     return fetchPokemonInfo(mon.species);
   }
