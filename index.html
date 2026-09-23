@@ -8638,6 +8638,8 @@ async function confirmImportTeam(t){
         sprite: sp.sprite,
         level: p.level ?? null,
         pid: p.pid || null,
+        abilityId: p.abilityId || null,
+        abilityName: await fetchPokeApiName('ability', p.abilityId),
         fainted: p.hpCurrent === 0,
       });
     }catch(e){
@@ -8744,7 +8746,19 @@ async function fetchMoveInfo(name){
   const res = await fetch('https://pokeapi.co/api/v2/move/'+slug);
   if(!res.ok) throw new Error('not found');
   const data = await res.json();
-  const info = { name: data.name, type: data.type.name, power: data.power || 0, category: data.damage_class?.name || 'physical' };
+  const meta = data.meta || {};
+  const hasSecondaryEffect = !!(
+    (meta.ailment && meta.ailment.name !== 'none') ||
+    meta.ailment_chance ||
+    meta.flinch_chance ||
+    meta.stat_chance
+  );
+  const info = {
+    name: data.name, type: data.type.name, power: data.power || 0,
+    category: data.damage_class?.name || 'physical',
+    hasSecondaryEffect,
+    isContact: !!meta.contact,
+  };
   _moveInfoCache[slug] = info;
   return info;
 }
@@ -8916,7 +8930,7 @@ function renderTypeCalc(app){
         ${tcRivalSlot()}
       </div>
       ${s.damageMode==='current' ? `<div class="tc-atk-picker"><label>Nivel del Pokémon rival</label><input type="number" min="1" max="100" value="${s.rivalLevel}" oninput="typeCalcState.rivalLevel=this.value; typeCalcState.result=null"></div>` : ''}
-      <div class="tc-sub" style="margin:10px 0 14px;">Cálculo conservador: tu Pokémon usa IV 0 y EV 0 en Ataque/At. Esp.; el rival usa IV 31 y EV 252 en la Defensa correspondiente y en PS.</div>
+      <div class="tc-sub" style="margin:10px 0 14px;">Cálculo conservador: tu Pokémon usa IV 0 y EV 0 en Ataque/At. Esp.; el rival usa IV 31 y EV 252 en la Defensa correspondiente y en PS. También se aplica la habilidad ofensiva conocida de tu Pokémon.</div>
       <div class="tc-atk-picker">
         <label>Movimiento que va a usar tu Pokémon</label>
         <div class="field autocomplete-wrap" style="margin:0;">
@@ -8942,11 +8956,16 @@ function renderTypeCalc(app){
 }
 
 function computeTypeResult(mineInfo, rivalInfo, moveInfo){
-  const baseMult = typeMultiplier(moveInfo.type, rivalInfo.types);
-  const stab = mineInfo.types.includes(moveInfo.type);
-  const totalMult = stab ? baseMult * 1.5 : baseMult;
-  const damage = computeDamage(mineInfo, rivalInfo, moveInfo, baseMult, stab);
-  return { baseMult, stab, totalMult, mineInfo, rivalInfo, moveInfo, damage };
+  const ability = attackerAbilityEffects(mineInfo.abilityName, moveInfo);
+  const effectiveMove = ability.convertedType
+    ? { ...moveInfo, type: ability.convertedType }
+    : moveInfo;
+  const baseMult = typeMultiplier(effectiveMove.type, rivalInfo.types);
+  const stab = mineInfo.types.includes(effectiveMove.type);
+  const stabMultiplier = stab ? ability.stab : 1;
+  const totalMult = baseMult * stabMultiplier * ability.move;
+  const damage = computeDamage(mineInfo, rivalInfo, effectiveMove, baseMult, stab, ability);
+  return { baseMult, stab, totalMult, mineInfo, rivalInfo, moveInfo: effectiveMove, damage, ability };
 }
 
 function statAtLevel(base, level, iv, ev, hp){
@@ -8959,18 +8978,112 @@ function tcLevel(value, fallback = 50){
   return Number.isFinite(level) ? Math.max(1, Math.min(100, Math.floor(level))) : fallback;
 }
 
-function computeDamage(mineInfo, rivalInfo, moveInfo, typeMultiplierValue, stab){
+function normalizeAbilityKey(name){
+  return String(name || '').toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function attackerAbilityEffects(abilityName, moveInfo){
+  const ability = normalizeAbilityKey(abilityName);
+  const move = normalizeAbilityKey(moveInfo.name);
+  const effects = { attack:1, move:1, stab:1.5, labels:[] };
+
+  // Habilidades de Gen 6 que modifican directamente el daño. Las que
+  // necesitan conocer clima, PS actuales, estado, género o una activación
+  // previa no se fuerzan porque la calculadora no dispone de esos datos.
+  if(['huge-power', 'pure-power', 'potencia', 'poder-puro'].includes(ability)){
+    effects.attack = 2;
+    effects.labels.push('Potencia ×2 Ataque');
+  }
+  if(ability === 'hustle' && moveInfo.category === 'physical'){
+    effects.attack *= 1.5;
+    effects.labels.push('Entusiasmo: Ataque físico ×1,5');
+  }
+  if(ability === 'adaptability'){
+    effects.stab = 2;
+    effects.labels.push('Adaptabilidad: STAB ×2');
+  }
+  if(ability === 'technician' && moveInfo.power > 0 && moveInfo.power <= 60){
+    effects.move *= 1.5;
+    effects.labels.push('Experto: potencia ×1,5');
+  }
+  if(ability === 'iron-fist' && [
+    'comet-punch','bullet-punch','ice-punch','fire-punch','thunder-punch',
+    'drain-punch','mach-punch','focus-punch','dynamic-punch','hammer-arm',
+    'power-up-punch','shadow-punch','meteor-mash','double-iron-bash',
+    'plasma-fists'
+  ].includes(move)){
+    effects.move *= 1.2;
+    effects.labels.push('Puño Férreo: movimiento ×1,2');
+  }
+  if(ability === 'strong-jaw' && [
+    'bite','crunch','fire-fang','ice-fang','thunder-fang','poison-fang',
+    'hyper-fang','super-fang','psychic-fangs','jaw-lock'
+  ].includes(move)){
+    effects.move *= 1.5;
+    effects.labels.push('Mandíbula Fuerte: movimiento ×1,5');
+  }
+  if(ability === 'mega-launcher' && [
+    'water-pulse','dark-pulse','dragon-pulse','aura-sphere','origin-pulse',
+    'terrain-pulse','heal-pulse'
+  ].includes(move)){
+    effects.move *= 1.5;
+    effects.labels.push('Megadisparador: movimiento ×1,5');
+  }
+  if(ability === 'tough-claws' && moveInfo.isContact){
+    effects.move *= 4 / 3;
+    effects.labels.push('Garra Dura: contacto ×1,33');
+  }
+  if(ability === 'reckless' && [
+    'double-edge','take-down','submission','jump-kick','high-jump-kick',
+    'flare-blitz','brave-bird','head-smash','wood-hammer','volt-tackle',
+    'wild-charge'
+  ].includes(move)){
+    effects.move *= 1.2;
+    effects.labels.push('Audaz: movimiento ×1,2');
+  }
+  if(ability === 'sheer-force' && moveInfo.hasSecondaryEffect){
+    effects.move *= 1.3;
+    effects.labels.push('Potencia Bruta: movimiento ×1,3');
+  }
+  if(ability === 'neuroforce' && moveInfo.power > 0){
+    // Neuroforce aumenta un 25% los golpes supereficaces. La comprobación
+    // exacta de eficacia se hace en computeTypeResult.
+    effects.neuroforce = true;
+    effects.labels.push('Fuerza Cerebral: golpe supereficaz ×1,25');
+  }
+  const conversionAbilities = {
+    aerilate: ['flying', 'Aerilate: movimiento Normal → Volador ×1,3'],
+    pixilate: ['fairy', 'Piel Feérica: movimiento Normal → Hada ×1,3'],
+    refrigerate: ['ice', 'Piel Helada: movimiento Normal → Hielo ×1,3'],
+  };
+  if(conversionAbilities[ability] && moveInfo.type === 'normal'){
+    effects.convertedType = conversionAbilities[ability][0];
+    effects.move *= 1.3;
+    effects.labels.push(conversionAbilities[ability][1]);
+  }
+  if(['normalize', 'normalidad'].includes(ability)){
+    effects.convertedType = 'normal';
+    effects.labels.push('Normalidad: movimiento convertido a Normal');
+  }
+  return effects;
+}
+
+function computeDamage(mineInfo, rivalInfo, moveInfo, typeMultiplierValue, stab, ability){
   if(!moveInfo.power || typeMultiplierValue === 0){
     const hp = statAtLevel(rivalInfo.stats.hp, rivalInfo.level || 50, 31, 252, true);
     return { min:0, max:0, hp, minPct:0, maxPct:0, remainingMin:100, remainingMax:100 };
   }
   const attackerStat = moveInfo.category === 'special' ? 'special-attack' : 'attack';
   const defenderStat = moveInfo.category === 'special' ? 'special-defense' : 'defense';
-  const attack = statAtLevel(mineInfo.stats[attackerStat], mineInfo.level || 50, 0, 0, false);
+  const attack = Math.floor(statAtLevel(mineInfo.stats[attackerStat], mineInfo.level || 50, 0, 0, false) * ability.attack);
   const defense = statAtLevel(rivalInfo.stats[defenderStat], rivalInfo.level || 50, 31, 252, false);
   const hp = statAtLevel(rivalInfo.stats.hp, rivalInfo.level || 50, 31, 252, true);
-  const base = Math.floor(Math.floor(Math.floor((Math.floor(2 * (mineInfo.level || 50) / 5) + 2) * moveInfo.power * attack / defense) / 50) + 2);
-  const modifier = (stab ? 1.5 : 1) * typeMultiplierValue;
+  const effectivePower = Math.floor(moveInfo.power * ability.move);
+  const base = Math.floor(Math.floor(Math.floor((Math.floor(2 * (mineInfo.level || 50) / 5) + 2) * effectivePower * attack / defense) / 50) + 2);
+  const neuroforce = ability.neuroforce && typeMultiplierValue > 1 ? 1.25 : 1;
+  const modifier = (stab ? ability.stab : 1) * typeMultiplierValue * neuroforce;
   const values = [0.85, 1].map(random => Math.floor(base * modifier * random));
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -9001,6 +9114,8 @@ function renderTypeResult(r){
       <div class="tc-mult">x${fmt(b)}</div>
       <div class="tc-label">${label}</div>
       ${r.stab ? `<div class="tc-stab">✨ STAB (mismo tipo que ${r.mineInfo.name}) → con STAB serían <b>x${fmt(r.totalMult)}</b></div>` : ''}
+      ${r.ability && r.ability.convertedType === 'normal' ? `<div class="tc-ko-note maybe">⚠️ NORMALIDAD: este movimiento se calcula como <b>tipo Normal</b>.</div>` : ''}
+      ${r.ability && r.ability.labels.length ? `<div class="tc-stab">✨ Habilidad de ${r.mineInfo.name}: <b>${r.mineInfo.abilityName}</b> · ${r.ability.labels.join(' · ')}</div>` : ''}
       ${d ? `
         <div class="tc-damage-panel">
           <div class="tc-damage-card">
@@ -9045,6 +9160,7 @@ async function resolveMineInfo(){
     if(!species) throw new Error('no mine');
     const info = await fetchPokemonInfo(species);
     info.level = s.damageMode === 'level50' ? 50 : (mon?.level || 50);
+    info.abilityName = mon?.abilityName || await fetchPokeApiName('ability', mon?.abilityId);
     return info;
   }
   const txt = s.mineText.trim();
