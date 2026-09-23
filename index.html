@@ -2258,7 +2258,7 @@ body.casino-mode main{ max-width:1320px; }
 .tc-atk-picker select{ width:100%; margin-top:2px; }
 .type-badge{ display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700; letter-spacing:.2px; white-space:nowrap; }
 .type-badge.sm{ padding:2px 8px; font-size:10.5px; }
-.type-calc-result{ margin-top:20px; padding:18px 18px 16px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,.03); text-align:center; }
+.type-calc-result{ margin-top:20px; padding:20px 18px 17px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.03); text-align:center; }
 .type-calc-result.good{ border-color:rgba(57,230,160,.5); background:rgba(57,230,160,.08); }
 .type-calc-result.mid{ border-color:rgba(255,194,51,.5); background:rgba(255,194,51,.07); }
 .type-calc-result.bad{ border-color:rgba(255,46,99,.45); background:rgba(255,46,99,.07); }
@@ -2268,6 +2268,39 @@ body.casino-mode main{ max-width:1320px; }
 .type-calc-result.bad .tc-mult{ color:var(--danger); }
 .tc-label{ margin-top:6px; font-family:var(--f-ui); font-weight:700; font-size:13.5px; letter-spacing:.4px; }
 .tc-stab{ margin-top:10px; font-family:var(--f-mono); font-size:12px; color:var(--sapphire); }
+.tc-damage-panel{ margin-top:16px; display:grid; gap:9px; text-align:left; }
+.tc-damage-card{ padding:11px 12px; border:1px solid rgba(255,255,255,.1); border-radius:10px; background:rgba(0,0,0,.14); }
+.tc-damage-card.damage{ border-color:rgba(255,110,110,.35); }
+.tc-damage-card.remaining{ border-color:rgba(57,230,160,.3); }
+.tc-damage-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.tc-damage-title{ font-size:11px; color:var(--silver-dim); text-transform:uppercase; letter-spacing:.7px; font-weight:700; }
+.tc-damage-value{ font-family:var(--f-display); font-size:21px; font-weight:800; color:var(--silver-bright); white-space:nowrap; }
+.tc-damage-card.damage .tc-damage-value{ color:#ff9b9b; }
+.tc-damage-card.remaining .tc-damage-value{ color:var(--neon-green); }
+.tc-damage-detail{ margin-top:3px; font-size:12px; color:var(--silver-dim); }
+.tc-hp-bar{ height:8px; margin-top:8px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.1); }
+.tc-hp-fill{ height:100%; border-radius:inherit; transition:width .25s ease; }
+.tc-hp-fill.damage{ background:linear-gradient(90deg,#ff4d6d,#ff9b58); }
+.tc-hp-fill.remaining{ background:linear-gradient(90deg,#20c997,#72f1b8); }
+.tc-hp-total{ display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--silver-dim); }
+.route-atlas-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+.route-atlas-tab{ border:1px solid var(--border); background:var(--panel-2); color:var(--silver-dim); border-radius:999px; padding:7px 13px; cursor:pointer; font:600 12px var(--f-ui); }
+.route-atlas-tab.active{ color:#fff; border-color:var(--sapphire); background:rgba(60,203,255,.16); }
+.route-atlas-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+.route-atlas-card{ padding:15px; }
+.route-atlas-card h3{ margin:0; color:var(--silver-bright); font:700 16px var(--f-display); letter-spacing:.7px; }
+.route-atlas-card small{ color:var(--silver-dim); }
+.route-atlas-mons{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.route-atlas-mon{ display:flex; align-items:center; gap:7px; min-width:108px; padding:6px 8px; border:1px solid rgba(255,255,255,.1); border-radius:9px; background:rgba(0,0,0,.14); }
+.route-atlas-mon img{ width:34px; height:34px; object-fit:contain; }
+.route-atlas-mon.fainted{ filter:grayscale(1); opacity:.58; }
+.route-atlas-mon b{ display:block; font-size:11px; color:var(--silver-bright); }
+.route-atlas-mon span{ display:block; font-size:10px; color:var(--silver-dim); }
+.tc-level{ display:inline-flex; margin-left:5px; padding:2px 7px; border-radius:999px; background:rgba(255,255,255,.1); color:var(--silver-bright); font-size:10px; font-weight:800; vertical-align:middle; }
+.tc-ko-note{ margin-top:12px; padding:9px 12px; border-radius:9px; font-size:12px; font-weight:800; letter-spacing:.5px; }
+.tc-ko-note.always{ color:#071a13; background:var(--neon-green); }
+.tc-ko-note.never{ color:#fff0f0; background:rgba(255,46,99,.75); }
+.tc-ko-note.maybe{ color:#241b00; background:var(--neon-yellow); }
 .tc-sub{ margin-top:12px; display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; font-size:12px; color:var(--silver-dim); }
 
 </style>
@@ -2286,6 +2319,7 @@ body.casino-mode main{ max-width:1320px; }
       <button class="nav-btn" data-nav="trade" onclick="go('trade')"><span class="ni">🔁</span><span class="nl">Trade</span></button>
       <button class="nav-btn" data-nav="duel" onclick="go('duel')"><span class="ni">⚔️</span><span class="nl">Arena</span></button>
       <button class="nav-btn" data-nav="types" onclick="go('types')"><span class="ni">🥊</span><span class="nl">Tipos</span></button>
+      <button class="nav-btn" data-nav="routes" onclick="go('routes')"><span class="ni">🗺️</span><span class="nl">Pokémon de ruta</span></button>
       <button class="nav-btn" data-nav="normas" onclick="go('normas')"><span class="ni">📕</span><span class="nl">Normas</span></button>
       <button class="nav-btn" data-nav="casino" onclick="go('casino')"><span class="ni">🎰</span><span class="nl">Casino</span></button>
       <button class="nav-btn n-final" data-nav="final" onclick="go('final')"><span class="ni">🏆</span><span class="nl">Final</span></button>
@@ -4263,6 +4297,7 @@ function render(){
   if(view === 'trade') return renderTrade(app);
   if(view === 'duel') return renderDuel(app);
   if(view === 'types') return renderTypeCalc(app);
+  if(view === 'routes') return renderRouteAtlas(app);
   if(view === 'normas') return renderNormas(app);
   if(view === 'casino') return renderCasino(app);
   if(view === 'final') return renderFinal(app);
@@ -4326,6 +4361,57 @@ function allMonsOf(t){
 function availableMonsOf(t){
   return allMonsOf(t).filter(m => !m.fainted);
 }
+
+function routeAtlasMons(t){
+  const manualMap = manualFainted[t] || {};
+  const team = (teams[t] || []).map(p => ({
+    pid:p.pid, nickname:p.nickname, speciesName:normalizeSpeciesName(p.species),
+    sprite:p.sprite, level:p.level, metLocationName:p.metLocationName,
+    fainted:manualMap.hasOwnProperty(p.pid) ? manualMap[p.pid] : !!p.fainted,
+  }));
+  const seen = new Set(team.map(m=>String(m.pid)));
+  const rawCollection = collections[t] && collections[t].pids ? collections[t].pids : (collections[t] || {});
+  const boxes = Object.entries(rawCollection)
+    .filter(([pid,m])=>!seen.has(String(pid)) && m && m.inTeam === false)
+    .map(([pid,m])=>({
+      pid, nickname:m.nickname || normalizeSpeciesName(m.speciesName || m.species),
+      speciesName:normalizeSpeciesName(m.speciesName || m.species), sprite:m.sprite,
+      level:null, metLocationName:m.metLocationName || null,
+      fainted:manualMap.hasOwnProperty(pid) ? manualMap[pid] : !!m.fainted,
+    }));
+  return [...team, ...boxes].filter(m=>m.metLocationName);
+}
+
+function renderRouteAtlas(app){
+  const selected = window.routeAtlasTrainer || currentTrainer || 'iker';
+  const mons = routeAtlasMons(selected);
+  const grouped = {};
+  mons.forEach(m=>{
+    const place = m.metLocationName || 'Lugar desconocido';
+    (grouped[place] ||= []).push(m);
+  });
+  const routes = Object.entries(grouped).sort(([a],[b])=>a.localeCompare(b,'es'));
+  app.innerHTML = `
+    <div class="section-label">🗺️ Pokémon de ruta</div>
+    <div class="section-sub" style="margin-bottom:16px;">El registro de tus encuentros, ordenado por el lugar donde capturaste cada Pokémon.</div>
+    <div class="route-atlas-tabs">
+      ${TRAINERS.map(t=>`<button class="route-atlas-tab ${selected===t?'active':''}" onclick="window.routeAtlasTrainer='${t}'; render();">${NAMES[t]}</button>`).join('')}
+    </div>
+    ${routes.length ? `<div class="route-atlas-grid">${routes.map(([place, list])=>`
+      <section class="kpi brk route-atlas-card">
+        <h3>📍 ${place}</h3>
+        <small>${list.length} encuentro${list.length===1?'':'s'}</small>
+        <div class="route-atlas-mons">
+          ${list.map(m=>`<div class="route-atlas-mon ${m.fainted?'fainted':''}" title="${m.fainted?'Debilitado':''}">
+            <img src="${m.sprite || ''}" alt="">
+            <div><b>${m.nickname || m.speciesName}</b><span>${m.speciesName}${m.level ? ` · Nv.${m.level}` : ''}${m.fainted ? ' · ☠️' : ''}</span></div>
+          </div>`).join('')}
+        </div>
+      </section>`).join('')}</div>` :
+      '<div class="empty-state">Todavía no hay capturas con una ruta registrada para este entrenador.</div>'}
+  `;
+}
+
 // Ranking por medallas: primero combates ganados, y si hay empate, se desempata por vidas.
 function getMedalRanking(){
   const ranked = [...TRAINERS].sort((a,b)=>{
@@ -4425,7 +4511,7 @@ function renderRivalriesCard(){
 /* ===================== NAVEGACIÓN / CARRIL LATERAL ===================== */
 const VIEW_TITLES = {
   home: 'Cuadro de mando', profile: 'Ficha de entrenador', history: 'Diario de la Liga', trade: 'Intercambios',
-  duel: 'Arena', normas: 'Reglamento', casino: 'Casino Malvalona', final: 'La Final',
+  duel: 'Arena', routes: 'Pokémon de ruta', normas: 'Reglamento', casino: 'Casino Malvalona', final: 'La Final',
 };
 function renderRailStatus(){
   const el = document.getElementById('rail-status');
@@ -4514,6 +4600,10 @@ function renderHome(app){
         <path d="M0 15 Q50 7 100 15 T200 15 T300 15 T400 15 T500 15 T600 15 T700 15 T800 15 T900 15 T1000 15 T1100 15 T1200 15 V22 H0Z" fill="rgba(4,11,22,.92)"/>
       </svg>
     </section>
+    <div class="kpi brk" style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px;padding:14px 16px;">
+      <div><strong style="color:var(--silver-bright);">⚔️ ¿Necesitas comprobar un golpe?</strong><br><span style="font-size:12px;color:var(--silver-dim);">Calcula tipos y daño sin salir de la partida.</span></div>
+      <button class="primary" onclick="go('types')">Abrir calculadora</button>
+    </div>
     <div class="home-grid">
       <div class="lb">${order.map(t=>lbRow(t, rankOf[t])).join('')}</div>
       <aside class="side">
@@ -8637,7 +8727,8 @@ async function fetchPokemonInfo(name){
   const data = await res.json();
   const types = data.types.slice().sort((a,b)=>a.slot-b.slot).map(t=>t.type.name);
   const sprite = (data.sprites.other && data.sprites.other['official-artwork'] && data.sprites.other['official-artwork'].front_default) || data.sprites.front_default;
-  const info = { name: data.name, types, sprite };
+  const stats = Object.fromEntries(data.stats.map(s=>[s.stat.name, s.base_stat]));
+  const info = { name: data.name, types, sprite, stats };
   _pokeInfoCache[slug] = info;
   return info;
 }
@@ -8653,7 +8744,7 @@ async function fetchMoveInfo(name){
   const res = await fetch('https://pokeapi.co/api/v2/move/'+slug);
   if(!res.ok) throw new Error('not found');
   const data = await res.json();
-  const info = { name: data.name, type: data.type.name };
+  const info = { name: data.name, type: data.type.name, power: data.power || 0, category: data.damage_class?.name || 'physical' };
   _moveInfoCache[slug] = info;
   return info;
 }
@@ -8663,6 +8754,7 @@ let typeCalcState = {
   trainer: (function(){ try{ const v = localStorage.getItem(TC_TRAINER_KEY); return TRAINERS.includes(v) ? v : null; }catch(e){ return null; } })(),
   mineId: '', rivalMode: 'any', rivalTrainer: '', rivalId: '', mineText: '', rivalText: '', moveText: '',
   minePreview: null, rivalPreview: null, mineSpecies: '', rivalSpecies: '',
+  damageMode: 'current', rivalLevel: 50,
   result: null, err: '', loading: false,
 };
 function pickTcTrainer(t){
@@ -8677,6 +8769,14 @@ function tcChangeTrainer(){
 }
 function setRivalMode(mode){
   typeCalcState.rivalMode = mode; typeCalcState.result = null; typeCalcState.err = '';
+  render();
+}
+function setDamageMode(mode){
+  typeCalcState.damageMode = mode;
+  if(typeCalcState.minePreview && mode === 'level50') typeCalcState.minePreview.level = 50;
+  if(typeCalcState.rivalPreview && mode === 'level50') typeCalcState.rivalPreview.level = 50;
+  typeCalcState.result = null;
+  typeCalcState.err = '';
   render();
 }
 async function loadTypeCalcPreview(side, name){
@@ -8695,12 +8795,25 @@ async function loadTypeCalcPreview(side, name){
 async function selectTcTeamPokemon(side, id){
   const s = typeCalcState;
   const trainer = side === 'mine' ? s.trainer : (s.rivalTrainer || TRAINERS.find(t=>t!==s.trainer));
-  const mon = (teams[trainer]||[]).find(p=>p && String(p.pid)===String(id));
+  const rivalTeam = trainer ? (teams[trainer] || []).filter(p=>p) : [];
+  const rivalCollection = trainer && collections[trainer]
+    ? Object.values(collections[trainer].pids || collections[trainer])
+    : [];
+  const source = side === 'rival' && rivalTeam.length
+    ? rivalTeam
+    : (side === 'rival' ? rivalCollection : (teams[trainer] || []));
+  const mon = source.find(p=>p && String(p.pid)===String(id));
   const key = side === 'mine' ? 'minePreview' : 'rivalPreview';
   typeCalcState[key] = null;
   typeCalcState.result = null;
   if(mon){
-    try{ typeCalcState[key] = await fetchPokemonInfo(mon.species); }
+    if(side === 'rival' && mon.level) typeCalcState.rivalLevel = mon.level;
+    try{
+      typeCalcState[key] = await fetchPokemonInfo(mon.species);
+      typeCalcState[key].level = typeCalcState.damageMode === 'level50'
+        ? 50
+        : (mon.level || 50);
+    }
     catch(e){ typeCalcState.err = 'No se ha podido cargar la información del Pokémon.'; }
   }
   render();
@@ -8724,7 +8837,7 @@ function tcMineSlot(){
       <div class="tc-mon-art ${info ? '' : 'empty'}">
         ${info ? `<img src="${info.sprite}" alt="">` : `<span class="tc-mon-placeholder">?</span>`}
       </div>
-      <div class="field" style="margin:0;"><label>Tu Pokémon</label>${picker}</div>
+      <div class="field" style="margin:0;"><label>Tu Pokémon ${info ? `<span class="tc-level">Nv. ${info.level || 50}</span>` : ''}</label>${picker}</div>
       ${info ? `<div class="tc-mon-types">${info.types.map(t=>typeBadge(t,'sm')).join('')}</div>` : ''}
     </div>`;
 }
@@ -8736,14 +8849,25 @@ function tcRivalSlot(){
   let picker;
   if(s.rivalMode === 'team'){
     const rt = s.rivalTrainer || otherTrainers[0];
-    const theirTeam = (teams[rt]||[]).filter(p=>p && !p.fainted);
+    const rivalTeam = (teams[rt]||[]).filter(p=>p);
+    const collectionMons = collections[rt]
+      ? Object.values(collections[rt].pids || collections[rt]).filter(p=>p && !p.fainted)
+      : [];
+    // El perfil puede contener solo el equipo que el watcher ve en ese
+    // momento. Si llega vacío, la colección conserva los Pokémon vivos.
+    const theirTeam = rivalTeam.length ? rivalTeam : collectionMons;
     picker = `
       <select id="tc-rival-trainer-sel" onchange="typeCalcState.rivalTrainer=this.value; typeCalcState.rivalId=''; typeCalcState.rivalSpecies=''; typeCalcState.rivalPreview=null; render();" style="margin-bottom:8px;">
         ${otherTrainers.map(t=>`<option value="${t}" ${rt===t?'selected':''}>${NAMES[t]}</option>`).join('')}
       </select>
       <select id="tc-rival-sel" onchange="typeCalcState.rivalId=this.value; typeCalcState.rivalSpecies=this.selectedOptions[0]?.dataset.species || ''; typeCalcState.result=null; typeCalcState.err=''; selectTcTeamPokemon('rival', this.value);">
         <option value="">Elige su Pokémon…</option>
-        ${theirTeam.map(p=>`<option value="${p.pid}" data-species="${p.species}" ${String(s.rivalId)===String(p.pid)?'selected':''}>${p.nickname} (${p.species})</option>`).join('')}
+        ${theirTeam.map(p=>{
+          const species = normalizeSpeciesName(p.speciesName || p.species);
+          const where = p.inTeam === false ? ' · caja' : '';
+          const fainted = p.fainted ? ' · debilitado' : '';
+          return `<option value="${p.pid}" data-species="${species}" ${String(s.rivalId)===String(p.pid)?'selected':''}>${p.nickname || species} (${species}${where}${fainted})</option>`;
+        }).join('')}
       </select>`;
   }else{
     picker = `
@@ -8782,11 +8906,17 @@ function renderTypeCalc(app){
   app.innerHTML = `
     <div class="section-label">🥊 Calculadora de tipos <span class="tc-whoami-tag">· jugando como ${NAMES[s.trainer]} <button type="button" class="tc-change-link" onclick="tcChangeTrainer()">(cambiar)</button></span></div>
     <div class="kpi brk type-calc-card">
+      <div class="tc-mode-toggle" style="margin-bottom:16px;">
+        <button type="button" class="${s.damageMode==='current'?'active':''}" onclick="setDamageMode('current')">Niveles actuales</button>
+        <button type="button" class="${s.damageMode==='level50'?'active':''}" onclick="setDamageMode('level50')">Todos al nivel 50</button>
+      </div>
       <div class="tc-arena">
         ${tcMineSlot()}
         <div class="tc-vs">VS</div>
         ${tcRivalSlot()}
       </div>
+      ${s.damageMode==='current' ? `<div class="tc-atk-picker"><label>Nivel del Pokémon rival</label><input type="number" min="1" max="100" value="${s.rivalLevel}" oninput="typeCalcState.rivalLevel=this.value; typeCalcState.result=null"></div>` : ''}
+      <div class="tc-sub" style="margin:10px 0 14px;">Cálculo conservador: tu Pokémon usa IV 0 y EV 0 en Ataque/At. Esp.; el rival usa IV 31 y EV 252 en la Defensa correspondiente y en PS.</div>
       <div class="tc-atk-picker">
         <label>Movimiento que va a usar tu Pokémon</label>
         <div class="field autocomplete-wrap" style="margin:0;">
@@ -8815,7 +8945,36 @@ function computeTypeResult(mineInfo, rivalInfo, moveInfo){
   const baseMult = typeMultiplier(moveInfo.type, rivalInfo.types);
   const stab = mineInfo.types.includes(moveInfo.type);
   const totalMult = stab ? baseMult * 1.5 : baseMult;
-  return { baseMult, stab, totalMult, mineInfo, rivalInfo, moveInfo };
+  const damage = computeDamage(mineInfo, rivalInfo, moveInfo, baseMult, stab);
+  return { baseMult, stab, totalMult, mineInfo, rivalInfo, moveInfo, damage };
+}
+
+function statAtLevel(base, level, iv, ev, hp){
+  const core = Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100);
+  return hp ? core + level + 10 : core + 5;
+}
+
+function tcLevel(value, fallback = 50){
+  const level = Number(value);
+  return Number.isFinite(level) ? Math.max(1, Math.min(100, Math.floor(level))) : fallback;
+}
+
+function computeDamage(mineInfo, rivalInfo, moveInfo, typeMultiplierValue, stab){
+  if(!moveInfo.power || typeMultiplierValue === 0){
+    const hp = statAtLevel(rivalInfo.stats.hp, rivalInfo.level || 50, 31, 252, true);
+    return { min:0, max:0, hp, minPct:0, maxPct:0, remainingMin:100, remainingMax:100 };
+  }
+  const attackerStat = moveInfo.category === 'special' ? 'special-attack' : 'attack';
+  const defenderStat = moveInfo.category === 'special' ? 'special-defense' : 'defense';
+  const attack = statAtLevel(mineInfo.stats[attackerStat], mineInfo.level || 50, 0, 0, false);
+  const defense = statAtLevel(rivalInfo.stats[defenderStat], rivalInfo.level || 50, 31, 252, false);
+  const hp = statAtLevel(rivalInfo.stats.hp, rivalInfo.level || 50, 31, 252, true);
+  const base = Math.floor(Math.floor(Math.floor((Math.floor(2 * (mineInfo.level || 50) / 5) + 2) * moveInfo.power * attack / defense) / 50) + 2);
+  const modifier = (stab ? 1.5 : 1) * typeMultiplierValue;
+  const values = [0.85, 1].map(random => Math.floor(base * modifier * random));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return { min, max, hp, minPct: min / hp * 100, maxPct: max / hp * 100, remainingMin: Math.max(0, 100 - max / hp * 100), remainingMax: Math.max(0, 100 - min / hp * 100) };
 }
 
 function renderTypeResult(r){
@@ -8827,11 +8986,50 @@ function renderTypeResult(r){
   else if(b === 1){ label = '➖ Eficacia normal'; cls = 'mid'; }
   else { label = '⚠️ No es muy eficaz...'; cls = 'bad'; }
   const fmt = n => (n % 1 === 0 ? n : n.toFixed(2));
+  const d = r.damage;
+  const damageWidth = d ? Math.min(100, Math.max(0, d.maxPct)) : 0;
+  const remainingWidth = d ? Math.min(100, Math.max(0, d.remainingMin)) : 100;
+  const koNote = d && d.min >= d.hp
+    ? '<div class="tc-ko-note always">✅ MATA SIEMPRE</div>'
+    : d && d.max < d.hp
+      ? '<div class="tc-ko-note never">❌ NO MATA NUNCA</div>'
+      : d
+        ? '<div class="tc-ko-note maybe">⚠️ PUEDE MATAR O NO, según el daño aleatorio</div>'
+        : '';
   return `
     <div class="type-calc-result ${cls}">
       <div class="tc-mult">x${fmt(b)}</div>
       <div class="tc-label">${label}</div>
       ${r.stab ? `<div class="tc-stab">✨ STAB (mismo tipo que ${r.mineInfo.name}) → con STAB serían <b>x${fmt(r.totalMult)}</b></div>` : ''}
+      ${d ? `
+        <div class="tc-damage-panel">
+          <div class="tc-damage-card">
+            <div class="tc-damage-head">
+              <div class="tc-damage-title">❤️ Vida máxima del rival</div>
+              <div class="tc-damage-value">${d.hp} PS</div>
+            </div>
+            <div class="tc-hp-total"><span>Antes del golpe</span><span>100%</span></div>
+            <div class="tc-hp-bar"><div class="tc-hp-fill remaining" style="width:100%"></div></div>
+          </div>
+          <div class="tc-damage-card damage">
+            <div class="tc-damage-head">
+              <div class="tc-damage-title">💥 Daño recibido</div>
+              <div class="tc-damage-value">${d.min}–${d.max} PS</div>
+            </div>
+            <div class="tc-damage-detail">${d.minPct.toFixed(1)}–${d.maxPct.toFixed(1)}% de su vida</div>
+            <div class="tc-hp-bar"><div class="tc-hp-fill damage" style="width:${damageWidth}%"></div></div>
+          </div>
+          <div class="tc-damage-card remaining">
+            <div class="tc-damage-head">
+              <div class="tc-damage-title">🟢 Vida que le queda</div>
+              <div class="tc-damage-value">${d.remainingMin.toFixed(1)}–${d.remainingMax.toFixed(1)}%</div>
+            </div>
+            <div class="tc-damage-detail">${Math.max(0, d.hp - d.max)}–${Math.max(0, d.hp - d.min)} PS restantes</div>
+            <div class="tc-hp-bar"><div class="tc-hp-fill remaining" style="width:${remainingWidth}%"></div></div>
+          </div>
+        </div>
+        ${koNote}
+      ` : ''}
       <div class="tc-sub">${typeBadge(r.moveInfo.type)} de <b>${r.mineInfo.name}</b> contra <b>${r.rivalInfo.name}</b> (${r.rivalInfo.types.map(t=>typeBadge(t,'sm')).join(' ')})</div>
     </div>`;
 }
@@ -8845,11 +9043,15 @@ async function resolveMineInfo(){
     const mon = myTeam.find(p=>String(p.pid)===String(monId));
     const species = s.mineSpecies || mon?.species;
     if(!species) throw new Error('no mine');
-    return fetchPokemonInfo(species);
+    const info = await fetchPokemonInfo(species);
+    info.level = s.damageMode === 'level50' ? 50 : (mon?.level || 50);
+    return info;
   }
   const txt = s.mineText.trim();
   if(!txt) throw new Error('no mine');
-  return fetchPokemonInfo(txt);
+  const info = await fetchPokemonInfo(txt);
+  info.level = 50;
+  return info;
 }
 async function resolveRivalInfo(){
   const s = typeCalcState;
@@ -8860,11 +9062,15 @@ async function resolveRivalInfo(){
     const mon = (teams[rt]||[]).find(p=>String(p.pid)===String(monId));
     const species = s.rivalSpecies || mon?.species;
     if(!species) throw new Error('no rival');
-    return fetchPokemonInfo(species);
+    const info = await fetchPokemonInfo(species);
+    info.level = s.damageMode === 'level50' ? 50 : tcLevel(s.rivalLevel);
+    return info;
   }
   const txt = s.rivalText.trim();
   if(!txt) throw new Error('no rival');
-  return fetchPokemonInfo(txt);
+  const info = await fetchPokemonInfo(txt);
+  info.level = s.damageMode === 'level50' ? 50 : tcLevel(s.rivalLevel);
+  return info;
 }
 
 async function calcTypeMatch(){
