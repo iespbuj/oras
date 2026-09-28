@@ -2206,7 +2206,7 @@ body.casino-mode main{ max-width:1320px; }
 .elo-num{ font-family:var(--f-display); font-weight:800; font-size:52px; line-height:1; color:var(--tier); text-shadow:0 0 22px color-mix(in srgb,var(--tier) 60%,transparent); }
 .elo-rating-main{ display:flex; align-items:center; justify-content:center; gap:10px; }
 .elo-rank-badge{ display:inline-grid; place-items:center; flex:0 0 auto; width:44px; height:44px; padding:0; border:0; background:transparent; color:var(--tier-color); cursor:pointer; }
-.elo-rank-badge svg{ display:block; width:100%; height:100%; filter:drop-shadow(0 0 5px color-mix(in srgb,var(--tier-color) 50%,transparent)); }
+.elo-rank-badge img{ display:block; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 5px color-mix(in srgb,var(--tier-color) 50%,transparent)); }
 .elo-rank-badge:hover{ transform:scale(1.12); }
 .elo-rank-badge:focus-visible{ outline:2px solid var(--tier-color); outline-offset:2px; border-radius:6px; }
 .elo-rank-badge.compact{ width:22px; height:22px; }
@@ -7600,30 +7600,23 @@ function eloBuildLegacyFromTotals(){
 const LEGACY_COMBATS = [...eloBuildLegacyFromTotals(), ...LEGACY_COMBATS_REAL];
 
 const ELO_TIERS = [
-  { min: -Infinity, max: 799,  name: 'Hierro',      color: '#a6a6ad' },
-  { min: 800,       max: 899,  name: 'Bronce',      color: '#c4865b' },
-  { min: 900,       max: 999,  name: 'Plata',       color: '#c7d1dc' },
-  { min: 1000,      max: 1099, name: 'Oro',         color: '#f2c94c' },
-  { min: 1100,      max: 1199, name: 'Platino',     color: '#57d4b5' },
-  { min: 1200,      max: 1299, name: 'Diamante',    color: '#58b7ee' },
-  { min: 1300,      max: 1399, name: 'Ascendente',  color: '#80c85a' },
-  { min: 1400,      max: 1499, name: 'Inmortal',    color: '#d64f68' },
-  { min: 1500,      max: Infinity, name: 'Radiante', color: '#f6d76e' },
+  { min: -Infinity, max: 799,  name: 'Hierro',      color: '#a6a6ad', iconId: 3 },
+  { min: 800,       max: 899,  name: 'Bronce',      color: '#c4865b', iconId: 6 },
+  { min: 900,       max: 999,  name: 'Plata',       color: '#c7d1dc', iconId: 9 },
+  { min: 1000,      max: 1099, name: 'Oro',         color: '#f2c94c', iconId: 12 },
+  { min: 1100,      max: 1199, name: 'Platino',     color: '#57d4b5', iconId: 15 },
+  { min: 1200,      max: 1299, name: 'Diamante',    color: '#58b7ee', iconId: 18 },
+  { min: 1300,      max: 1399, name: 'Ascendente',  color: '#80c85a', iconId: 21 },
+  { min: 1400,      max: 1499, name: 'Inmortal',    color: '#d64f68', iconId: 24 },
+  { min: 1500,      max: Infinity, name: 'Radiante', color: '#f6d76e', iconId: 27 },
 ];
 function eloTier(r){ return ELO_TIERS.find(t => r >= t.min && r <= t.max) || ELO_TIERS[0]; }
 function eloRankBadge(trainer, compact=false){
   const rating = eloOf(trainer);
   const tier = eloTier(rating);
-  const index = ELO_TIERS.indexOf(tier);
   const sizeClass = compact ? ' compact' : '';
   return `<button type="button" class="elo-rank-badge${sizeClass}" style="--tier-color:${tier.color}" aria-label="Ver rango ${tier.name} de ${NAMES[trainer]}" title="${tier.name} · ${rating} ELO" onclick="event.stopPropagation(); showEloRank('${trainer}')">
-    <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-      <path d="M50 5 88 25 81 70 50 95 19 70 12 25Z" fill="currentColor" fill-opacity=".16" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M50 15 78 30 72 66 50 83 28 66 22 30Z" fill="none" stroke="currentColor" stroke-opacity=".6" stroke-width="2"/>
-      <path d="M35 31h30M32 37h36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <text x="50" y="68" text-anchor="middle" fill="currentColor" font-family="Arial,sans-serif" font-size="34" font-weight="800">${['I','B','S','O','P','D','A','M','R'][index]}</text>
-      <circle cx="50" cy="88" r="3" fill="currentColor"/>
-    </svg>
+    <img src="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier.iconId}/largeicon.png" alt="" loading="lazy" decoding="async">
   </button>`;
 }
 function eloTierRange(tier){
