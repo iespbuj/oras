@@ -4077,7 +4077,7 @@ function showNewsPopupIfAny(){
     <div class="news-list">
       ${nuevas.map(h=>`
         <div class="news-item">
-          <span class="news-text">${h.text}</span>
+          <span class="news-text">${historyTextForDisplay(h.text)}</span>
           <span class="news-time">${newsRelativeTime(h.ts)}</span>
         </div>
       `).join('')}
@@ -4834,11 +4834,16 @@ function renderHistoryListOnly(){
   const listEl = document.getElementById('history-list-wrap');
   if(listEl) listEl.innerHTML = buildHistoryListHtml();
 }
+function historyTextForDisplay(text){
+  const raw = String(text || '');
+  if(!raw.startsWith('🆕') && !raw.startsWith('✨')) return raw;
+  return raw.replace(/#(\d{1,3})\b/g, (match, dex) => SPECIES_NAMES[Number(dex)] || match);
+}
 function buildHistoryListHtml(){
   const q = historySearch.trim().toLowerCase();
   const filtered = history.filter(e => {
     if(historyFilter !== 'all' && historyCategoryOf(e.text) !== historyFilter) return false;
-    if(q && !e.text.toLowerCase().includes(q)) return false;
+    if(q && !historyTextForDisplay(e.text).toLowerCase().includes(q)) return false;
     return true;
   });
   if(filtered.length === 0){
@@ -4861,7 +4866,7 @@ function buildHistoryListHtml(){
     <div class="history-day-label">${g.label}</div>
     ${g.items.map(e=> `
       <div class="history-item">
-        <span class="h-text">${e.text}</span>
+        <span class="h-text">${historyTextForDisplay(e.text)}</span>
         <span class="h-time mono">${new Date(e.ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</span>
       </div>`).join('')}
   `).join('');
